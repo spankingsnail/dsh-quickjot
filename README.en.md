@@ -16,11 +16,9 @@ The hardest part of keeping a calendar was never remembering. It is **opening it
 
 随手记 is a local calendar plugin for [DeepSeek Harness](https://github.com/deepseek-ai) that collapses that into a sentence: notes, todos and dated events share one ledger, one line puts something in it, and it reminds you in the app when it is due — or on WeChat, if you have confirmed a target.
 
-> The plugin's display name is **随手记**; the repository and package name is `dsh-quickjot`. They are the same thing — a Chinese name for daily use, an ASCII identifier for config files and code.
+![Demo of 随手记](https://raw.githubusercontent.com/spankingsnail/dsh-quickjot/main/docs/promo/quickjot.gif)
 
-[![46-second demo of 随手记](https://raw.githubusercontent.com/spankingsnail/dsh-quickjot/main/docs/promo/poster.png)](https://github.com/spankingsnail/dsh-quickjot/raw/main/docs/promo/dsh-quickjot-promo.mp4)
-
-<p align="center"><sub>▶ 46-second demo (silent, Chinese subtitles, 3.0 MB). Every item in the footage is fictional.</sub></p>
+<p align="center"><a href="https://cdn.jsdelivr.net/gh/spankingsnail/dsh-quickjot@main/docs/promo/dsh-quickjot-promo.mp4">Watch the full demo</a></p>
 
 Everything lives on your machine as one JSON record per item: readable, backup-able, portable.
 
@@ -75,9 +73,7 @@ The UI follows the DSH theme. Dates and due times are always read as **Asia/Shan
 
 ## Install
 
-> Currently v3.0.0, for the desktop build of DSH (0.2.x). Once listed on dshmarket, the easiest path is to search for **随手记** in the plugin market.
-
-Manual:
+> Currently v3.1.0, for the desktop build of DSH (0.2.x).
 
 ```bash
 git clone https://github.com/spankingsnail/dsh-quickjot.git ~/dsh-quickjot
@@ -103,6 +99,8 @@ Then register this checkout in your DSH profile (`~/.dsh/profiles/<profile>/pack
 
 Run `pnpm install` inside that profile directory and restart DSH. The sidebar showing **随手记** means it loaded. You can disable or remove the plugin at any time; disabling does not delete existing items.
 
+> Upgrading from an early version: the storage domains are `dsh_quickjot` / `dsh_quickjot_in_app`, and the tools are `dsh_quickjot_list` / `dsh_quickjot_write` / `dsh_quickjot_in_app_reminders`.
+
 ## Using it
 
 **The shortest path: open 随手记, click 随口记 in the header, and say it.**
@@ -126,24 +124,6 @@ When something is vague it asks. Notes and plain todos may have no date; an even
 - Only items, tags, reminder state and the ID of the delivery target you picked are stored. No conversation content, no address book, no WeChat token.
 - WeChat delivery only calls a target **you have already saved** through the connected `dshIm` service. It never creates targets, reads credentials, or messages unknown contacts.
 - Everything is local: no server, no cloud sync, no external data source.
-
-## Where it comes from
-
-This plugin started as a larger prototype: besides notes, todos, events and reminders it carried text meeting notes (AI summaries plus human-confirmed action conversion) and macOS local recording capture.
-
-v2 removed both. The reason is plain: meetings and recording made the plugin heavy (the recorder plus its build cache approached 200 MB), while the part actually used every day was the three item kinds and the reminders. **Make one thing solid first**; adding the rest back later is still an option.
-
-The full prototype is preserved in git history: [`v1.0.0`](https://github.com/spankingsnail/dsh-quickjot/releases/tag/v1.0.0). Legacy tags such as 会议记录 and 沟通记录 remain because a migration should not lose your data.
-
-### About the name
-
-The early version was called 随手记, it was briefly renamed DSH-Calendar, and now **the display name is 随手记 again while the identifier is `dsh-quickjot`**.
-
-The identifier changed for a concrete reason, not for novelty: `dsh-calendar` is already used by nine repositories on GitHub, and on npm the name belongs to a different project (`dsh-calendar`, 7k+ downloads a month). Keeping it would guarantee that this plugin ranks behind all of them, and that anyone running `npm i dsh-calendar` installs the wrong thing.
-
-`jot` means exactly what 随手记 means — to write something down offhand — and it collides with nothing in the DSH plugin space. The Chinese display name never needed fixing, so it stayed.
-
-> Upgrading from an older version: the storage domains are now `dsh_quickjot` / `dsh_quickjot_in_app`, and the tools are `dsh_quickjot_list` / `dsh_quickjot_write` / `dsh_quickjot_in_app_reminders`. Data was copied over as-is; the old directories were not deleted.
 
 ## Credits
 

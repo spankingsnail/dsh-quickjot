@@ -16,11 +16,9 @@
 
 随手记是给 [DeepSeek Harness](https://github.com/deepseek-ai) 用的本机日历插件，把这一步压成一句话：**便签、待办、日程**共用一本账，说一句就落进去；到期时在应用里提醒你，按你的确认也可以发到微信。
 
-> 插件显示名是**随手记**，仓库与包名是 `dsh-quickjot`。两者指的是同一个东西：中文名字给日常使用，英文标识给配置文件和代码。
+![随手记演示](https://raw.githubusercontent.com/spankingsnail/dsh-quickjot/main/docs/promo/quickjot.gif)
 
-[![随手记 46 秒演示](https://raw.githubusercontent.com/spankingsnail/dsh-quickjot/main/docs/promo/poster.png)](https://github.com/spankingsnail/dsh-quickjot/raw/main/docs/promo/dsh-quickjot-promo.mp4)
-
-<p align="center"><sub>▶ 46 秒演示（无声，中文字幕，3.0MB）。画面里的数据全部是虚构的。</sub></p>
+<p align="center"><a href="https://cdn.jsdelivr.net/gh/spankingsnail/dsh-quickjot@main/docs/promo/dsh-quickjot-promo.mp4">看完整演示</a></p>
 
 数据存在你自己的机器上，逐条 JSON，随时能看、能备份、能带走。
 
@@ -39,7 +37,7 @@
 所以随手记的默认姿态是「说一句」：
 
 - 在任意对话里说一句，Agent 用插件提供的工具把事项写进本机账本；
-- 不想离开当前页面，点页面右上角的**「随口记」**，也是一段对话框——没有表单，只有输入框和发送键；
+- 不想离开当前页面，点页面右上角的<strong>「随口记」</strong>，也是一段对话框——没有表单，只有输入框和发送键；
 - 想翻、想改、想勾掉，再回侧栏：日历按月列出日程，待办可以勾掉，便签留给还没成形的想法；
 - 到期了它会提醒你——应用内提醒不需要任何额外配置，微信提醒需要你事先选好收件目标。
 
@@ -63,7 +61,7 @@
 
 ## 你会注意到的几个设计取舍
 
-**「说一句」才是入口，表单是兜底。** 在「随口记」里直接说「明天上午十点开会」，助手会拆成事项并追问含糊的地方；时间不明确时它先问，不猜。表单留着，是因为有时候你确实想对着日历点——但不该默认如此。
+<strong>「说一句」才是入口，表单是兜底。</strong> 在「随口记」里直接说「明天上午十点开会」，助手会拆成事项并追问含糊的地方；时间不明确时它先问，不猜。表单留着，是因为有时候你确实想对着日历点——但不该默认如此。
 
 **引用不是授权。** 你贴进来的文章、会议记录、别人的话，都只是资料。只有你自己明确要求记录，才会建项。这条写在插件的全局策略里，不靠模型的临场判断。
 
@@ -75,9 +73,7 @@
 
 ## 安装
 
-> 当前为 v3.0.0，面向桌面版 DSH（0.2.x）。上架 dshmarket 后，最省事的方式是在插件市场里搜索 **随手记** 直接安装。
-
-手动安装：
+> 当前为 v3.1.0，面向桌面版 DSH（0.2.x）。
 
 ```bash
 git clone https://github.com/spankingsnail/dsh-quickjot.git ~/dsh-quickjot
@@ -103,6 +99,8 @@ npm run build
 
 在该 profile 目录执行 `pnpm install`，重启 DSH。侧栏出现「随手记」即安装成功。插件可随时停用或卸载，停用不会删除已有事项。
 
+> 从早期版本升级：存储域是 `dsh_quickjot` / `dsh_quickjot_in_app`，工具是 `dsh_quickjot_list` / `dsh_quickjot_write` / `dsh_quickjot_in_app_reminders`。
+
 ## 使用
 
 **最短的一条路：打开随手记，点右上角「随口记」，说一句。**
@@ -126,24 +124,6 @@ npm run build
 - 只保存事项、标签、提醒状态和你选定的收件目标 ID；不保存对话内容、通讯录、微信 token。
 - 微信投递只调用已接入的 `dshIm` 服务里**你已经保存过的**目标，不创建目标、不读取凭据、不主动给未知联系人发消息。
 - 所有功能都在本机；没有服务器、没有云同步、不调用外部数据源。
-
-## 它的来历
-
-这个插件的前身是一个更大的原型：除了便签、待办、日程和提醒，还带文字会议整理（AI 纪要 + 人工确认的行动转换）与 macOS 本地录音采集。
-
-v2 把它们拿掉了。原因很实在：会议和录音让插件变得很重（录音组件连同构建缓存接近 200MB），而真正每天在用的部分，是那三种事项和提醒。**先把一件事做利落**，再加回来也不迟。
-
-完整原型保留在 git 历史里：[`v1.0.0`](https://github.com/spankingsnail/dsh-quickjot/releases/tag/v1.0.0)。标签仍沿用「会议记录」「沟通记录」等旧分类，因为迁移不该弄丢你的数据。
-
-### 关于名字
-
-早期叫「随手记」，中间一度改叫 DSH-Calendar，现在**显示名回到「随手记」，标识符改成 `dsh-quickjot`**。
-
-改标识符不是为了新鲜，是因为 `dsh-calendar` 这个名字在 GitHub 上已经有 9 个同名仓库，npm 上还被别人占了（`dsh-calendar` 是另一个项目在发布，月下载七千多）。叫这个名字，等于永远排在搜索结果第九位以后，还会让 `npm i dsh-calendar` 的人装错东西。
-
-`jot` 就是「随手记下」，和中文名对得上，也不和任何现存 DSH 插件冲突。中文名「随手记」没有动，因为它本来就是干净的。
-
-> 从旧版本升级：存储域已迁移到 `dsh_quickjot` / `dsh_quickjot_in_app`，工具名改为 `dsh_quickjot_list` / `dsh_quickjot_write` / `dsh_quickjot_in_app_reminders`。数据是原样复制过去的，旧目录没有删。
 
 ## 致谢
 
