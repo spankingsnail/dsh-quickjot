@@ -1,6 +1,8 @@
 # 宣传视频素材
 
-`dsh-quickjot-promo.mp4` 是仓库 README 顶部那段 46 秒演示：**无声**、中文硬字幕、片尾一行英文 tagline。
+`dsh-quickjot-promo.mp4` 是完整演示：**无声**、中文硬字幕、片尾一行英文 tagline。
+
+README 顶部内嵌的是 `quickjot.gif`——从中剪出的「随口记」那一幕（760×428，4.6 秒，597KB），点它下面的「看完整演示」才走 jsDelivr 播完整片。这样做的原因是 GitHub 只会内嵌图片，不会把仓库里的 mp4 渲染成播放器。
 
 ## 重要：画面里没有真实数据
 
@@ -13,8 +15,9 @@
 | 文件 | 说明 |
 | --- | --- |
 | `dsh-quickjot-promo.mp4` | 成片。1920×1080 / 30fps / H.264 / 46.0s / 约 3.0MB |
-| `poster.png` | README 里的封面帧（取自 24.6s 的「随口记」对话框） |
-| `demo.html` | 演示页本体：6 幕 + 时间轴引擎，`window.renderAt(t)` 渲染任意时刻 |
+| `quickjot.gif` | README 顶部内嵌的动图，取自 20.6–25.2s 的「随口记」那一幕 |
+| `poster.png` | 静态封面帧（取自 24.6s 的「随口记」对话框），也用作 release 配图 |
+| `demo.html` | 演示页本体：7 幕 + 时间轴引擎，`window.renderAt(t)` 渲染任意时刻 |
 | `capture.mjs` | 只抓指定几帧做检查：`node capture.mjs 21.0 24.6` |
 | `plugin.css` | 从插件源码抽出的样式，保证演示长相与真实界面一致 |
 | `extract-css.mjs` | 重新抽取 `plugin.css` 的脚本 |
