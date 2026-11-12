@@ -1,8 +1,19 @@
 # 验证记录
 
-## 最新状态：v2.0.0 精简为日历插件（2026-11-12，上海）
+## 最新状态：v2.1.0 显示名回到「随手记」+ README 中英双语（2026-11-12，上海）
 
-- 按用户要求分两次提交：v1 完整原型（含文字会议与本地录音）先提交并打 tag `v1.0.0` 推送；随后在同一仓库做 v2，删除会议与录音，插件改名为 **DSH-Calendar**。
+- 用户要求：插件显示名应为中文「随手记」；仓库名与将来提交给 DSH 的 PR 仍叫 `dsh-calendar`；README 默认中文，并提供可点击的英文切换（点击后是纯英文介绍）。
+- 显示名改动只在用户可见文案层：`src/client.mjs`、`src/reminder-client.mjs`、`src/reminder-host.mjs`、`src/core.mjs`、`src/index.mjs` 中 23 处 `DSH-Calendar` 品牌串替换为 `随手记`（含侧栏 label、页面 aria-label、提醒浮层 label、微信提醒正文前缀、工具描述、系统提示首句、错误与日志）。系统提示首句改为「随手记（仓库名 dsh-calendar）是当前本机配置跨对话共享的便签、待办、日程。」，让模型同时知道显示名与仓库名。
+- **内部标识一律未改**：包名/模块 id `dsh-calendar`、页面 `dsh-calendar:page`、路由 `/api/dsh-calendar/items` 与 `/api/dsh-calendar/in-app-reminders`、存储域 `dsh_calendar` 与 `dsh_calendar_in_app`、工具 `dsh_calendar_list` / `dsh_calendar_write` / `dsh_calendar_in_app_reminders`、locale id `dsh-calendar`、`cordis.patch.yml` 全部保持原样，已安装用户的配置与既有数据不受影响。
+- locale：`locale/zh.json` title 改为「随手记 · 日程、待办与便签」并在 description 注明仓库名 dsh-calendar；`locale/en.json` title 改为「随手记 · Notes, tasks & calendar」。
+- README 拆成两份：`README.md` 为中文主版（顶部居中 badge 行 + 「English / 简体中文」切换链接），新增 `README.en.md` 为纯英文全文，两份首尾互相链接；同时把 `README.en.md` 加入 `package.json` 的 `files`。版本号 2.0.0 → 2.1.0。
+- 同步修正断言：`test/core.test.mjs` 微信正文 `/随手记提醒/`、`test/reminder-ui.test.mjs` 点击「查看随手记」、`test/integration.test.mjs` 侧栏 label `随手记`、页面 aria-label `随手记`、浮层 label `随手记提醒`。
+- 重新执行 `node localize.mjs`、`node build.mjs`、`node --check lib/client.js`；全量 **120/120 通过、0 失败 0 跳过**。
+- 本记录仍只覆盖代码、构建与自动化测试；中英文 README 的 GitHub 渲染效果、badge 链接与语言切换需在推送后于网页端确认。
+
+## v2.0.0：精简为日历插件（2026-11-12，上海）
+
+- 按用户要求分两次提交：v1 完整原型（含文字会议与本地录音）先提交并打 tag `v1.0.0` 推送；随后在同一仓库做 v2，删除会议与录音，插件改名为 **DSH-Calendar**（v2.1.0 显示名回到「随手记」，仓库名不变）。
 - 删除范围：`src/meeting-*.mjs`（4 个）、`src/recording-*.mjs`（4 个）、整个 `native/` 目录及其构建缓存，以及对应 8 个测试文件。保留便签/待办/日程、应用内提醒、微信提醒、页面内「随口记」与共享标签选择器（`TagPicker` 迁入 `src/client.mjs`）。
 - 标识符统一：包名与模块 id `dsh-calendar`；页面 `dsh-calendar:page`；路由 `/api/dsh-calendar/items` 与 `/api/dsh-calendar/in-app-reminders`；存储域 `dsh_calendar` 与 `dsh_calendar_in_app`；工具 `dsh_calendar_list` / `dsh_calendar_write` / `dsh_calendar_in_app_reminders`；locale id `dsh-calendar`；主题类前缀 `ssj-` 保留。旧 `suishouji_*` 文案、错误、日志与 locale 全部替换。
 - `build.mjs` 现在只产出 5 份 `lib` 入口（index、core、reminder-core、reminder-host、client）；`localize.mjs` 重生中文消息字典。`node localize.mjs`、`node build.mjs`、`node --check lib/client.js` 均通过。
@@ -11,7 +22,7 @@
 - 本记录只验证代码、构建与自动化测试；没有实际点击/截图验收 v2 界面，v2 的安装与存储数据迁移（`suishouji_67369b06` → `dsh_calendar`，`suishouji_in_app_67369b06` → `dsh_calendar_in_app`）在本机安装后再单独确认。v1 原型的完整验证记录在 tag `v1.0.0` 中。
 
 
-## 最新状态：便签长文编辑与页面占比优化（2026-11-11，上海）
+## 历史状态：便签长文编辑与页面占比优化（2026-11-11，上海）
 
 - 按用户反馈在原页面增量调整：取消外层1000/1120px最大宽度、缩小两侧留白，主内容区使用可用宽度；编辑器不再固定320px，便签写作两栏约由27.5%列表与72.5%编辑区分配可用空间（受列表240px最小宽度及间距影响）。不新增页面或插件，不改事项、会议、提醒及录音的后端逻辑。
 - 便签新建与编辑均用大正文区：默认18行，桌面最小高度按可用视口在360–800px间自适应，可继续手动拖高；16px字号、1.8行距，较大标题框和长度计数。正文仍为原有12,000上限，不截断或改写旧正文。时间/微信设置放入自适应小网格，原有保存、取消、分类切换及并发保护保持不变。

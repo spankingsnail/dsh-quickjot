@@ -1,8 +1,20 @@
-# DSH-Calendar
+<div align="center">
 
-> 把对话里的一句话，落成本机上的一个日程。
+# 随手记
+
+**把对话里的一句话，落成本机上的一个日程。**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![DeepSeek Harness](https://img.shields.io/badge/DeepSeek%20Harness-plugin-5b5bd6.svg)](https://github.com/deepseek-ai)
+[![English](https://img.shields.io/badge/README-English-2f81f7.svg)](README.en.md)
+
+[English](README.en.md) · **简体中文**
+
+</div>
 
 一个给 [DeepSeek Harness](https://github.com/deepseek-ai) 用的本机日历插件：**便签、待办、日程**三种形态共用一本账；到期时在应用里提醒你，按你的确认也可以发到微信。
+
+> 插件显示名是**随手记**，仓库与包名是 `dsh-calendar`。两者指的是同一个东西：中文名字给日常使用，英文标识给配置文件和代码。
 
 数据存在你自己的机器上，逐条 JSON，随时能看、能备份、能带走。
 
@@ -16,7 +28,7 @@
 
 「明天十点提醒我续签合同」「这个想法先记下来」「下周三之前把方案写完」——这些话说完就消失在对话流里。你需要的不是更聪明的助手，而是一个**把话变成事项**的地方。
 
-DSH-Calendar 就是这个落点：
+随手记就是这个落点：
 
 - 在任意对话里说一句，Agent 用插件提供的工具把事项写进本机账本；
 - 侧栏打开就能看到，日历按月列出日程，待办可以勾掉，便签留给还没成形的想法；
@@ -28,7 +40,7 @@ DSH-Calendar 就是这个落点：
 
 | 入口 | 适合 | 说明 |
 | --- | --- | --- |
-| 侧栏「DSH-Calendar」 | 手动整理、翻日历 | 日程 / 待办 / 便签三个视图，月历可展开按日期筛选 |
+| 侧栏「随手记」 | 手动整理、翻日历 | 日程 / 待办 / 便签三个视图，月历可展开按日期筛选 |
 | 对话提问 | 一边干活一边记 | `dsh_calendar_list` / `dsh_calendar_write` 两个工具 |
 | 页面内「随口记」 | 不想切页面时 | 一段短对话，走 DSH 的模型额度，记录仍落在同一本账 |
 
@@ -48,7 +60,7 @@ DSH-Calendar 就是这个落点：
 
 ## 安装
 
-> 当前为 v2.0.0，面向桌面版 DSH（0.2.x）。上架 dshmarket 后，最省事的方式是在插件市场里搜索 **DSH-Calendar** 直接安装。
+> 当前为 v2.0.0，面向桌面版 DSH（0.2.x）。上架 dshmarket 后，最省事的方式是在插件市场里搜索 **随手记** 直接安装。
 
 手动安装：
 
@@ -74,7 +86,7 @@ npm run build
 }
 ```
 
-在该 profile 目录执行 `pnpm install`，重启 DSH。侧栏出现「DSH-Calendar」即安装成功。插件可随时停用或卸载，停用不会删除已有事项。
+在该 profile 目录执行 `pnpm install`，重启 DSH。侧栏出现「随手记」即安装成功。插件可随时停用或卸载，停用不会删除已有事项。
 
 ## 使用
 
@@ -104,9 +116,11 @@ v2 把它们拿掉了。原因很实在：会议和录音让插件变得很重�
 
 完整原型保留在 git 历史里：[`v1.0.0`](https://github.com/spankingsnail/dsh-calendar/releases/tag/v1.0.0)。标签仍沿用「会议记录」「沟通记录」等旧分类，因为迁移不该弄丢你的数据。
 
+> 顺带说明命名：早期版本叫「随手记」，中间改名「DSH-Calendar」，现在回到「随手记」作为显示名——沿用的是大家叫顺口的那个。仓库名保持 `dsh-calendar` 不变，因为改名会让已安装的用户和已上架的条目一起失效。
+
 ## 致谢
 
-- **[DSH-IM](https://github.com/xmanrui/dsh-im)**（`@xmanrui/dsh-im`）——**这个插件的微信推送，完全是借它的技术才做到的**。目标管理、IM 投递通道和发送回执都由 DSH-IM 提供；DSH-Calendar 只在它之上做三件事：从你已经保存的目标里选一个、把发送状态记进本机、让你能核对结果。没有 DSH-IM，就不会有「微信提醒」这个功能。
+- **[DSH-IM](https://github.com/xmanrui/dsh-im)**（`@xmanrui/dsh-im`）——**这个插件的微信推送，完全是借它的技术才做到的**。目标管理、IM 投递通道和发送回执都由 DSH-IM 提供；随手记只在它之上做三件事：从你已经保存的目标里选一个、把发送状态记进本机、让你能核对结果。没有 DSH-IM，就不会有「微信提醒」这个功能。
 - **[dsh-plugin-control-your-schedule](https://github.com/HaoyanZhang123/dsh-plugin-control-your-schedule)**（HaoyanZhang123，MIT）——本项目的上游。数据结构、提醒状态机和「引用不是授权」的策略延续自它。
 - **[DeepSeek Harness](https://github.com/deepseek-ai)**——插件框架、UI 插槽、存储域与模型额度。
 - Zod（MIT）是唯一声明的运行时依赖；React 来自 DSH 的模块表。
@@ -114,11 +128,3 @@ v2 把它们拿掉了。原因很实在：会议和录音让插件变得很重�
 ## License
 
 MIT。保留上游版权与来源说明，见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
-
----
-
-## English
-
-DSH-Calendar is a local calendar plugin for DeepSeek Harness: notes, todos and dated events in one place, with in-app due reminders and optional WeChat delivery while the app is running. Items live in local per-record JSON — nothing is uploaded. Requires the desktop build of DSH; see the Chinese sections above for install and usage.
-
-Known limits, stated plainly: reminders only fire while DSH runs, sleep defers delivery, and WeChat delivery needs a pre-saved target. MIT licensed. WeChat delivery exists only because of [DSH-IM](https://github.com/xmanrui/dsh-im): it owns the saved-target management and the IM channel, and DSH-Calendar only selects a saved target, records delivery status, and lets you verify the result. Thanks also to the upstream schedule plugin this started from.
