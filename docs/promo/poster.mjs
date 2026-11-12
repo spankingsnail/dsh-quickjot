@@ -29,7 +29,7 @@ const send = (method, params = {}) => new Promise((res, rej) => { const mid = ++
 
 await send('Page.enable');
 await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: DSF, mobile: false });
-await send('Page.navigate', { url: 'file:///Users/snail/.dsh/im/promo/demo.html' });
+await send('Page.navigate', { url: new URL('./demo.html', import.meta.url).href });
 await sleep(1500);
 await send('Runtime.evaluate', { expression: `document.getElementById('cap').style.display='none'; window.renderAt(${process.argv[2] || 18.4})` });
 await sleep(300);

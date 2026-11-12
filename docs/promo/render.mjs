@@ -64,7 +64,7 @@ await send('Emulation.setDeviceMetricsOverride', {
 });
 await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'no-preference' }] });
 
-const file = 'file:///Users/snail/.dsh/im/promo/demo.html';
+const file = new URL('./demo.html', import.meta.url).href;
 await send('Page.navigate', { url: file });
 await sleep(1600);
 
@@ -74,7 +74,7 @@ const ff = spawn('/opt/homebrew/bin/ffmpeg', [
   '-c:v', 'libx264', '-preset', 'slow', '-crf', '18',
   '-profile:v', 'high', '-level', '4.2', '-tune', 'animation',
   '-movflags', '+faststart', '-an',
-  '/Users/snail/.dsh/im/promo/dsh-calendar-promo.mp4',
+  new URL('./dsh-calendar-promo.mp4', import.meta.url).pathname,
 ], { stdio: ['pipe', 'inherit', 'inherit'] });
 
 const total = Math.round(TOTAL * FPS);
