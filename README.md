@@ -6,6 +6,8 @@
 
 数据存在你自己的机器上，逐条 JSON，随时能看、能备份、能带走。
 
+微信推送那一段不是自己实现的：目标管理与消息通道来自 **[DSH-IM](https://github.com/xmanrui/dsh-im)**，没有它，提醒只会停在应用内。
+
 ---
 
 ## 为什么需要它
@@ -104,7 +106,7 @@ v2 把它们拿掉了。原因很实在：会议和录音让插件变得很重�
 
 ## 致谢
 
-- **[DSH-IM](https://github.com/xmanrui/dsh-im)**（`@xmanrui/dsh-im`）——微信提醒能发出去，靠的是它的 IM 投递通道。DSH-Calendar 只在它的能力之上做「选目标、存状态、可核对」，不重复造连接层。
+- **[DSH-IM](https://github.com/xmanrui/dsh-im)**（`@xmanrui/dsh-im`）——**这个插件的微信推送，完全是借它的技术才做到的**。目标管理、IM 投递通道和发送回执都由 DSH-IM 提供；DSH-Calendar 只在它之上做三件事：从你已经保存的目标里选一个、把发送状态记进本机、让你能核对结果。没有 DSH-IM，就不会有「微信提醒」这个功能。
 - **[dsh-plugin-control-your-schedule](https://github.com/HaoyanZhang123/dsh-plugin-control-your-schedule)**（HaoyanZhang123，MIT）——本项目的上游。数据结构、提醒状态机和「引用不是授权」的策略延续自它。
 - **[DeepSeek Harness](https://github.com/deepseek-ai)**——插件框架、UI 插槽、存储域与模型额度。
 - Zod（MIT）是唯一声明的运行时依赖；React 来自 DSH 的模块表。
@@ -119,4 +121,4 @@ MIT。保留上游版权与来源说明，见 [THIRD_PARTY_NOTICES.md](THIRD_PAR
 
 DSH-Calendar is a local calendar plugin for DeepSeek Harness: notes, todos and dated events in one place, with in-app due reminders and optional WeChat delivery while the app is running. Items live in local per-record JSON — nothing is uploaded. Requires the desktop build of DSH; see the Chinese sections above for install and usage.
 
-Known limits, stated plainly: reminders only fire while DSH runs, sleep defers delivery, and WeChat delivery needs a pre-saved target. MIT licensed, with thanks to DSH-IM and the upstream schedule plugin.
+Known limits, stated plainly: reminders only fire while DSH runs, sleep defers delivery, and WeChat delivery needs a pre-saved target. MIT licensed. WeChat delivery exists only because of [DSH-IM](https://github.com/xmanrui/dsh-im): it owns the saved-target management and the IM channel, and DSH-Calendar only selects a saved target, records delivery status, and lets you verify the result. Thanks also to the upstream schedule plugin this started from.
