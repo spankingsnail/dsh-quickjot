@@ -71,7 +71,7 @@ The UI follows the DSH theme. Dates and due times are always read as **Asia/Shan
 
 ## Install
 
-> Currently v3.1.0, for the desktop build of DSH (0.2.x).
+> Currently v3.2.0, for the desktop build of DSH (0.2.x).
 
 ```bash
 git clone https://github.com/spankingsnail/dsh-quickjot.git ~/dsh-quickjot
@@ -102,6 +102,10 @@ Run `pnpm install` inside that profile directory and restart DSH. The sidebar sh
 ## Using it
 
 **The shortest path: open 随手记, click 随口记 in the header, and say it.**
+
+In the title bar, choose a model already configured in DSH and, when supported, its reasoning effort, without crowding the chat input. This changes only this quick-jot conversation, not the global default. Catalog and selection errors are shown explicitly; the plugin never silently switches to another model.
+
+If the saved quick-jot conversation is archived, the popup explains why sending is disabled. Click the restore button to unarchive only this conversation, then submit manually. Restoring never resends old messages.
 
 - "Remind me to renew the contract at ten tomorrow morning" → an event, plus a question about whether to send it to WeChat
 - "Note this idea down: add a risk column to the weekly report" → a note

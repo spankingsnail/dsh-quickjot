@@ -5,12 +5,13 @@ function source(initial){let value=initial;const listeners=new Set();return {get
 function fixture({saved=null,createResult={ok:true,value:{sessionId:'chat-1'}},deferredReady=false,promptResult}={}){
  const snapshot={running:false,pendingSubmissions:[],awaitingFirstTurn:false},session=source(snapshot),events=source({entries:[]});
  const calls=[],submissions=[],prompts=[],states=[];let releases=0,refreshes=0,ready;
+ const workspaceList=source({phase:'ready',state:'idle',archivedSessionIds:[]}),workspaces={list:workspaceList,unarchiveSession:async id=>{calls.push(['unarchive',id]);workspaceList.set({...workspaceList.getSnapshot(),archivedSessionIds:workspaceList.getSnapshot().archivedSessionIds.filter(value=>value!==id)});}};
  session.beginSubmission=input=>{submissions.push(input);return {requestId:'native-'+submissions.length,abandon:()=>calls.push('abandon')};};
  session.prompt=async(...args)=>{assert.equal(submissions.length,prompts.length+1,'register local echo BEFORE each actual prompt');prompts.push(args);if(promptResult instanceof Error)throw promptResult;if(typeof promptResult==='function')return promptResult(...args);return promptResult??new Promise(()=>{});};
  const binding={session,eventSource:events,sessionId:'chat-1'};
  const readyPromise=deferredReady?new Promise(resolve=>{ready=resolve;}):Promise.resolve(binding);
- const c=createChatController({sessions:{retain:(id,options)=>{calls.push(['retain',id,options]);return {ready:readyPromise,release:()=>{releases++;}};}},remote:{session:{create:async options=>{calls.push(['create',options]);return createResult;}}},storage:{get:()=>saved,set:id=>{saved=id;}},onChange:s=>states.push(s),onSettled:()=>{refreshes++;}});
- return {c,calls,submissions,prompts,states,session,events,binding,get saved(){return saved;},get releases(){return releases;},get refreshes(){return refreshes;},resolve:()=>ready(binding)};
+ const c=createChatController({workspaces,sessions:{retain:(id,options)=>{calls.push(['retain',id,options]);return {ready:readyPromise,release:()=>{releases++;}};}},remote:{session:{create:async options=>{calls.push(['create',options]);return createResult;}}},storage:{get:()=>saved,set:id=>{saved=id;}},onChange:s=>states.push(s),onSettled:()=>{refreshes++;}});
+ return {c,calls,submissions,prompts,states,session,events,binding,workspaces,workspaceList,get saved(){return saved;},get releases(){return releases;},get refreshes(){return refreshes;},resolve:()=>ready(binding)};
 }
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 test('initial page read creates no conversation and sends no model prompt',async()=>{
@@ -143,4 +144,72 @@ test('durable completed answer outranks a later failed transport receipt',async(
 });
 test('native observed retirement is receipt evidence even if its prompt response is still pending',async()=>{
  const f=fixture({saved:'existing'}),p=f.c.send('查询');await tick();f.submissions[0].onRetire({reason:'observed',attachments:[]});assert.equal(await p,true);assert.equal(f.c.getSnapshot().delivery,'accepted');f.c.dispose();
+});
+test('first send racing a non-creating mount upgrades to one creation instead of disappearing',async()=>{
+ const f=fixture({promptResult:{ok:true,value:{}}});
+ const connecting=f.c.connect(),sending=f.c.send('帮我记下一个想法');
+ await connecting;assert.equal(await sending,true);
+ assert.equal(f.calls.filter(call=>call[0]==='create').length,1);assert.equal(f.prompts.length,1);
+ assert.equal(f.c.getSnapshot().delivery,'accepted');f.c.dispose();
+});
+test('accepted native failure retirement ends the waiting lock without automatically resending',async()=>{
+ const f=fixture({saved:'existing'}),p=f.c.send('第一条');await tick();f.submissions[0].onAccept();assert.equal(await p,true);
+ f.submissions[0].onRetire({reason:'failed'});
+ f.session.set({running:false,pendingSubmissions:[],awaitingFirstTurn:false});
+ assert.equal(f.c.getSnapshot().running,false);assert.equal(f.c.getSnapshot().delivery,'failed');assert.equal(f.prompts.length,1);
+ const next=f.c.send('用户明确重发');await tick();assert.equal(f.prompts.length,2);f.submissions[1].onAccept();assert.equal(await next,true);f.c.dispose();
+});
+test('native retirement before prompt error preserves the specific model failure',async()=>{
+ const f=fixture({saved:'existing',promptResult:()=>{f.submissions[0].onRetire({reason:'failed'});f.session.set({running:false,pendingSubmissions:[],promptError:{op:'send',error:{message:'MODEL_NOT_CONFIGURED：请选择可用模型'}}});return {ok:false,error:Error('MODEL_NOT_CONFIGURED：请选择可用模型')};}});
+ assert.equal(await f.c.send('查询'),false);assert.match(f.c.getSnapshot().error,/MODEL_NOT_CONFIGURED/);
+ assert.equal(f.c.getSnapshot().running,false);assert.equal(f.prompts.length,1);f.c.dispose();
+});
+test('history completion does not hide a current event-stream connection error',async()=>{
+ const f=fixture({saved:'existing'});f.events.set({entries:[human(1),assistantEvent(2,1,[{type:'text',text:'过去的答复'}]),turnEnd(3,1)]});await f.c.connect();
+ f.session.set({running:false,pendingSubmissions:[],openState:'error',openError:{message:'EVENT_STREAM_DEAD'}});
+ assert.match(f.c.getSnapshot().error,/EVENT_STREAM_DEAD/);assert.equal(f.c.getSnapshot().delivery,'failed');
+ assert.equal(f.c.getSnapshot().messages.at(-1).text,'过去的答复');f.c.dispose();
+});
+test('archived persisted chat keeps history but never submits or silently unarchives',async()=>{
+ const f=fixture({saved:'existing'});f.workspaceList.set({phase:'ready',state:'idle',archivedSessionIds:['existing','other']});
+ f.events.set({entries:[human(1),assistantEvent(2,1,[{type:'text',text:'已存在的答复'}]),turnEnd(3,1)]});await f.c.connect();
+ assert.equal(f.c.getSnapshot().archived,true);assert.equal(f.c.getSnapshot().delivery,'archived');assert.equal(f.c.getSnapshot().messages.at(-1).text,'已存在的答复');
+ assert.equal(await f.c.send('必须保留的草稿'),false);assert.equal(f.submissions.length,0);assert.equal(f.prompts.length,0);assert.equal(f.calls.some(call=>call[0]==='unarchive'),false);assert.equal(f.saved,'existing');
+ f.c.dispose();assert.equal(f.workspaceList.listeners.size,0);
+});
+test('workspace baseline and reconnect must be ready before create or send',async()=>{
+ for(const snapshot of [{phase:'loading',state:'loading',archivedSessionIds:[]},{phase:'ready',state:'loading',archivedSessionIds:[]},{phase:'ready',state:'error',error:{message:'WORKSPACE_UNAVAILABLE'},archivedSessionIds:[]}]){
+  const f=fixture();f.workspaceList.set(snapshot);assert.equal(await f.c.send('不绕过归档检查'),false);assert.equal(f.calls.length,0);assert.equal(f.prompts.length,0);assert.equal(f.c.getSnapshot().archiveReady,false);f.c.dispose();
+ }
+});
+test('explicit recovery unarchives only this session and never replays blocked inputs',async()=>{
+ const f=fixture({saved:'existing',promptResult:{ok:true,value:{}}});f.workspaceList.set({phase:'ready',state:'idle',archivedSessionIds:['existing','other']});await f.c.connect();f.events.set({entries:[turnEnd(4,1,'blocked')]});
+ assert.equal(await f.c.restoreArchived(),true);assert.deepEqual(f.calls.filter(call=>call[0]==='unarchive'),[['unarchive','existing']]);assert.deepEqual(f.workspaceList.getSnapshot().archivedSessionIds,['other']);assert.equal(f.saved,'existing');
+ assert.equal(f.prompts.length,0);assert.equal(f.c.getSnapshot().archived,false);assert.equal(f.c.getSnapshot().restored,true);assert.equal(f.c.getSnapshot().delivery,'idle');
+ assert.equal(await f.c.send('用户恢复后手动提交'),true);assert.equal(f.prompts.length,1);assert.equal(f.prompts[0][0][0].text,'用户恢复后手动提交');assert.equal(f.c.getSnapshot().restored,false);f.c.dispose();
+});
+test('archive arriving between retain and send blocks the prompt',async()=>{
+ const f=fixture({saved:'existing',deferredReady:true}),pending=f.c.send('保留草稿');await tick();f.workspaceList.set({phase:'ready',state:'idle',archivedSessionIds:['existing']});f.resolve();
+ assert.equal(await pending,false);assert.equal(f.prompts.length,0);assert.equal(f.c.getSnapshot().archived,true);f.c.dispose();
+});
+test('native pre-step archived rejection after admission settles without replay',async()=>{
+ const f=fixture({saved:'existing',promptResult:{ok:true,value:{}}});assert.equal(await f.c.send('已入队但未处理'),true);
+ f.workspaceList.set({phase:'ready',state:'idle',archivedSessionIds:['existing']});f.events.set({entries:[turnEnd(3,1,'blocked')]});
+ assert.equal(f.c.getSnapshot().delivery,'archived');assert.equal(f.c.getSnapshot().running,false);assert.equal(f.prompts.length,1);assert.equal(await f.c.restoreArchived(),true);assert.equal(f.prompts.length,1);f.c.dispose();
+});
+test('recovery failure remains visible, and external unarchive never auto-sends',async()=>{
+ const f=fixture({saved:'existing'});f.workspaceList.set({phase:'ready',state:'idle',archivedSessionIds:['existing']});await f.c.connect();f.workspaces.unarchiveSession=async()=>{throw Error('RESTORE_DENIED');};
+ assert.equal(await f.c.restoreArchived(),false);assert.equal(f.c.getSnapshot().archived,true);assert.equal(f.c.getSnapshot().restoring,false);assert.match(f.c.getSnapshot().recoveryError,/RESTORE_DENIED/);
+ f.workspaceList.set({phase:'ready',state:'idle',archivedSessionIds:[]});assert.equal(f.c.getSnapshot().archived,false);assert.equal(f.prompts.length,0);f.c.dispose();
+});
+test('recovery cannot report success from a reconnecting or unready archive projection',async()=>{
+ const f=fixture({saved:'existing'});f.workspaceList.set({phase:'ready',state:'idle',archivedSessionIds:['existing']});await f.c.connect();
+ f.workspaces.unarchiveSession=async()=>{f.workspaceList.set({phase:'ready',state:'loading',archivedSessionIds:[]});};
+ assert.equal(await f.c.restoreArchived(),false);assert.equal(f.c.getSnapshot().archiveReady,false);assert.equal(f.c.getSnapshot().restored,false);assert.match(f.c.getSnapshot().recoveryError,/重新核对/);assert.equal(f.prompts.length,0);f.c.dispose();
+});
+test('recovery suppresses only the prior blocked event, never later blocked turns from the full chat',async()=>{
+ const f=fixture({saved:'existing'});f.workspaceList.set({phase:'ready',state:'idle',archivedSessionIds:['existing']});await f.c.connect();f.events.set({entries:[turnEnd(3,1,'blocked')]});
+ assert.equal(await f.c.restoreArchived(),true);assert.equal(f.c.getSnapshot().delivery,'idle');
+ f.events.set({entries:[turnEnd(3,1,'blocked'),{type:'event',event:{seq:4,type:'turn/start',data:{turn:2}}},turnEnd(5,2,'blocked')]});
+ assert.equal(f.c.getSnapshot().delivery,'blocked');assert.equal(f.prompts.length,0);f.c.dispose();
 });
