@@ -1,13 +1,13 @@
 {
-  "name":"@dsh-local/view-67369b06-cc50-4fed-8e20-f7b5517ee076",
-  "version":"1.0.1",
+  "name":"dsh-calendar",
+  "version":"2.0.0",
   "private":true,
   "type":"module",
   "license":"MIT",
-  "description":"跨对话共享的本机便签、日程与待办，支持运行期间微信提醒",
+  "description":"DeepSeek Harness 里的跨对话便签、待办与日历日程，支持应用内提醒与运行期间的微信提醒",
   "icon":"./icon.svg",
   "exports":{".":"./lib/index.js","./client":"./lib/client.js","./icon":"./icon.svg","./locale/*.json":"./locale/*.json"},
-  "files":["lib","native/recorder","native/Recorder.swift","native/Recorder-Info.plist","native/build-helper.sh","native/README.md","locale","icon.svg","cordis.patch.yml","README.md","VERIFICATION.md","LICENSE","THIRD_PARTY_NOTICES.md"],
+  "files":["lib","locale","icon.svg","cordis.patch.yml","README.md","VERIFICATION.md","LICENSE","THIRD_PARTY_NOTICES.md"],
   "scripts":{"build":"node build.mjs","test":"node --test test/*.test.mjs"},
   "dependencies":{"zod":"3.25.76"},
   "dsh":{"bundle":{"patch":"./cordis.patch.yml"},"client":{"platform":"web","immediately":true,"inject":["@deepseek-ai/dsh-client-ui-slots","@deepseek-ai/dsh-client-ui-layout","@deepseek-ai/dsh-client-locale","@deepseek-ai/dsh-api-session-controller","@deepseek-ai/dsh-api-remotes"]}}

@@ -1,6 +1,6 @@
 import {createHash} from 'node:crypto';
 import {z} from 'zod';
-export const IN_APP_ROUTE='/api/suishouji-67369b06/in-app-reminders';
+export const IN_APP_ROUTE='/api/dsh-calendar/in-app-reminders';
 const idSchema=z.string().regex(/^[a-f0-9]{64}$/);
 export const inAppEntrySchema=z.object({id:idSchema,itemId:z.string(),kind:z.enum(['todo','event']),title:z.string().max(200),body:z.string().max(1200),dueAt:z.string().datetime(),createdAt:z.string().datetime(),missed:z.boolean(),announcedAt:z.string().datetime().nullable(),readAt:z.string().datetime().nullable(),cancelled:z.boolean()}).strict();
 export const inAppActionSchema=z.discriminatedUnion('op',[

@@ -1,5 +1,16 @@
 # 验证记录
 
+## 最新状态：v2.0.0 精简为日历插件（2026-11-12，上海）
+
+- 按用户要求分两次提交：v1 完整原型（含文字会议与本地录音）先提交并打 tag `v1.0.0` 推送；随后在同一仓库做 v2，删除会议与录音，插件改名为 **DSH-Calendar**。
+- 删除范围：`src/meeting-*.mjs`（4 个）、`src/recording-*.mjs`（4 个）、整个 `native/` 目录及其构建缓存，以及对应 8 个测试文件。保留便签/待办/日程、应用内提醒、微信提醒、页面内「随口记」与共享标签选择器（`TagPicker` 迁入 `src/client.mjs`）。
+- 标识符统一：包名与模块 id `dsh-calendar`；页面 `dsh-calendar:page`；路由 `/api/dsh-calendar/items` 与 `/api/dsh-calendar/in-app-reminders`；存储域 `dsh_calendar` 与 `dsh_calendar_in_app`；工具 `dsh_calendar_list` / `dsh_calendar_write` / `dsh_calendar_in_app_reminders`；locale id `dsh-calendar`；主题类前缀 `ssj-` 保留。旧 `suishouji_*` 文案、错误、日志与 locale 全部替换。
+- `build.mjs` 现在只产出 5 份 `lib` 入口（index、core、reminder-core、reminder-host、client）；`localize.mjs` 重生中文消息字典。`node localize.mjs`、`node build.mjs`、`node --check lib/client.js` 均通过。
+- 测试：删除会议/录音用例后修整 `test/integration.test.mjs`（存储域改为 `items`/`preferences`/`notifications`，第二个域断言 `dsh_calendar_in_app`）与 `test/page-editor.test.mjs`（会议导航用例改为「会议模式已移除」断言）。全量 **120/120 通过、0 失败 0 跳过**。
+- 打包清单（`files` 字段）已去掉 native 相关条目；仍需的 `README.md`、`VERIFICATION.md`、`LICENSE`、`THIRD_PARTY_NOTICES.md` 保留。
+- 本记录只验证代码、构建与自动化测试；没有实际点击/截图验收 v2 界面，v2 的安装与存储数据迁移（`suishouji_67369b06` → `dsh_calendar`，`suishouji_in_app_67369b06` → `dsh_calendar_in_app`）在本机安装后再单独确认。v1 原型的完整验证记录在 tag `v1.0.0` 中。
+
+
 ## 最新状态：便签长文编辑与页面占比优化（2026-11-11，上海）
 
 - 按用户反馈在原页面增量调整：取消外层1000/1120px最大宽度、缩小两侧留白，主内容区使用可用宽度；编辑器不再固定320px，便签写作两栏约由27.5%列表与72.5%编辑区分配可用空间（受列表240px最小宽度及间距影响）。不新增页面或插件，不改事项、会议、提醒及录音的后端逻辑。

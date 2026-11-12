@@ -59,8 +59,9 @@ test('new after editing a saved record never carries its id, revision, content, 
 test('discard cancellation preserves unsaved input; confirmed new resets even in the same category',async()=>{
  const f=await fixture();f.button('+ 新建便签').props.onClick();f.fill();const key=f.form().props.key;f.setApprove(false);f.tab('todo').props.onClick();assert.equal(f.field('标题').props.value,'未保存标题');assert.equal(f.form().props.key,key);f.button('+ 新建便签').props.onClick();assert.equal(f.form().props.key,key);f.setApprove(true);f.button('+ 新建便签').props.onClick();f.assertBlank('note');assert.notEqual(f.form().props.key,key);assert.equal(f.posts.length,0);
 });
-test('meeting navigation also clears item editor instead of restoring stale form on return',async()=>{
- const f=await fixture();f.button('+ 新建便签').props.onClick();f.fill();f.button('会议笔记').props.onClick();assert.equal(f.form(),undefined);f.tab('note').props.onClick();assert.equal(f.form(),undefined);f.button('+ 新建便签').props.onClick();f.assertBlank('note');
+test('meeting mode is gone: no meeting tab, no meeting entry in the shared bar',async()=>{
+ const f=await fixture(null),labels=f.render().nodes.filter(n=>n.type==='button').map(n=>n.children?.[0]).filter(x=>typeof x==='string');
+ assert.ok(labels.some(x=>x.startsWith('日程 ')));assert.equal(f.button('会议笔记'),undefined);assert.ok(labels.every(x=>!x.includes('会议')),'meeting UI must not leak into the calendar page');
 });
 test('writing CSS fills the available page and uses container-aware wide-editor and stacked narrow layouts',async()=>{
  const f=await fixture(),styles=f.render().nodes.find(n=>n.type==='style').children.join('');

@@ -1,8 +1,8 @@
 // Embedded in the shared React factory; the Host owns durable announcement/read state.
-const REMINDER_URL = '/api/suishouji-67369b06/in-app-reminders';
+const REMINDER_URL = '/api/dsh-calendar/in-app-reminders';
 const reminderTexts = [
-  '提醒', '随手记提醒', '未读提醒', '打开未读提醒', '关闭未读提醒', '关闭提示', '查看未读提醒',
-  '日程', '待办', '错过的提醒', '标为已读', '本页全部标为已读', '查看随手记',
+  '提醒', 'DSH-Calendar 提醒', '未读提醒', '打开未读提醒', '关闭未读提醒', '关闭提示', '查看未读提醒',
+  '日程', '待办', '错过的提醒', '标为已读', '本页全部标为已读', '查看 DSH-Calendar',
   '暂无未读提醒。', '正在同步…', '重试同步', '提醒同步失败', '提醒请求超时，请重试同步。',
   '标为已读失败；不会自动重试，请核对未读列表后手动重试。',
   '有时间的未完成待办和日程按截止或日程时间提醒；便签和无时间事项不提醒。',
@@ -137,7 +137,7 @@ function ReminderCenter({t, layout}) {
     error && h('div', {className:'ssn-card ssn-error', role:'status'}, h('div', null, error), h('button', {type:'button', disabled:busy, onClick:() => sync(true)}, t('重试同步'))),
     expanded && h('section', {className:'ssn-card ssn-inbox', role:'region', 'aria-label':t('未读提醒')},
       h('div', {className:'ssn-head'}, h('strong', null, t('未读提醒') + ' (' + count + ')'), h('button', {type:'button', 'aria-label':t('关闭未读提醒'), onClick:() => setExpanded(false)}, '×')),
-      h('div', {className:'ssn-actions'}, h('button', {type:'button', disabled:busy || !entries.length, onClick:() => markRead(entries.map(entry => entry.id))}, t('本页全部标为已读') + ' (' + entries.length + ')'), h('button', {type:'button', onClick:() => layout.selectPanel('@dsh-local/view-67369b06-cc50-4fed-8e20-f7b5517ee076:page')}, t('查看随手记'))),
+      h('div', {className:'ssn-actions'}, h('button', {type:'button', disabled:busy || !entries.length, onClick:() => markRead(entries.map(entry => entry.id))}, t('本页全部标为已读') + ' (' + entries.length + ')'), h('button', {type:'button', onClick:() => layout.selectPanel('dsh-calendar:page')}, t('查看 DSH-Calendar'))),
       h('div', {className:'ssn-list'}, ...entries.map(entry => h('article', {key:entry.id, className:'ssn-entry'}, h('strong', null, entry.title), metadata(entry), entry.body && h('p', {className:'ssn-body'}, entry.body), h('button', {type:'button', disabled:busy, 'aria-label':t('标为已读') + ': ' + entry.title, onClick:() => markRead([entry.id])}, t('标为已读')))),
         !entries.length && h('p', null, snapshot ? t('暂无未读提醒。') : t('提醒状态尚未读取'))),
       snapshot?.truncated && h('p', {className:'ssn-help'}, t('未读较多，仅显示最近 100 条；本页全部已读只处理当前列表。')),
