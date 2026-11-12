@@ -60,7 +60,7 @@ The UI follows the DSH theme. Dates and due times are always read as **Asia/Shan
 
 ## Install
 
-> Currently v2.0.0, for the desktop build of DSH (0.2.x). Once listed on dshmarket, the easiest path is to search for **随手记** in the plugin market.
+> Currently v2.1.0, for the desktop build of DSH (0.2.x). Once listed on dshmarket, the easiest path is to search for **随手记** in the plugin market.
 
 Manual:
 
