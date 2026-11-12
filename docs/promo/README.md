@@ -35,7 +35,7 @@ node render.mjs                 # 输出 dsh-quickjot-promo.mp4
 
 封面用 `node poster.mjs 24.6 poster.png` 单独出——它把字幕条关掉，因为封面是静态缩略图，压着一行会读的字幕反而显得吵。
 
-## 六幕结构
+## 七幕结构
 
 | 时间 | 内容 | 字幕 |
 | --- | --- | --- |
