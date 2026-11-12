@@ -18,6 +18,7 @@
 | `plugin.css` | 从插件源码抽出的样式，保证演示长相与真实界面一致 |
 | `extract-css.mjs` | 重新抽取 `plugin.css` 的脚本 |
 | `render.mjs` | 抓帧并编码的脚本（headless Chrome + CDP + ffmpeg） |
+| `poster.mjs` | 单独导出封面帧（顺手把字幕条隐掉） |
 
 ## 重新生成
 
@@ -30,6 +31,8 @@ node render.mjs                 # 输出 dsh-calendar-promo.mp4
 ```
 
 `render.mjs` 用 CDP 把 `renderAt(t)` 逐帧喂给页面再截图，通过管道直接写给 ffmpeg，不落中间帧文件。整片在本机约 2.5 分钟出片。
+
+封面用 `node poster.mjs 18.4 poster.png` 单独出——它把字幕条关掉，因为封面是静态缩略图，压着一行会读的字幕反而显得吵。
 
 ## 六幕结构
 

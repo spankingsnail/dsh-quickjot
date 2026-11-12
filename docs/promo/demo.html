@@ -392,8 +392,24 @@ function typed(el, text, t, s, cps) {
 }
 
 const acts = { s1:[0,6], s2:[6,14], s3:[14,24], s4:[24,32], s5:[32,39], s6:[39,45.5] };
-function actAlpha(t, [a, b], fadeIn = .5, fadeOut = .5) {
-  return clamp(easeOut(p(t, a, fadeIn))) * (1 - easeInOut(p(t, b - fadeOut, fadeOut)));
+// Seams. Same-frame beats (window→window, panel→dim) crossfade with a centred .5s
+// overlap. Beats where the outgoing content sits where the incoming one lands (the big
+// opening line, the reminder panel) fade out *before* the next one starts, leaving a
+// short breath of background rather than two layers on top of each other.
+const SEAM = {
+  s1: { out: [5.55, .35] },
+  s2: { in: [5.85, .40] },
+  s4: { out: [31.55, .35] },
+  s5: { in: [31.85, .40] },
+  s6: { in: [39.10, .50] },
+};
+function actAlpha(t, key) {
+  const [a, b] = acts[key];
+  const [is, idl] = SEAM[key]?.in ?? [a - .25, .5];
+  const [os, od] = SEAM[key]?.out ?? [b - .25, .5];
+  const inA = is <= 0 ? 1 : clamp(easeInOut(p(t, is, idl)));
+  const outA = key === 's6' ? 1 : 1 - easeInOut(p(t, os, od));
+  return inA * outA;
 }
 const CAPS = [
   [0.2, 5.6, '你和 AI 聊出来的事，大多没被记住。'],
@@ -419,8 +435,8 @@ function renderAt(t) {
 
   // ACT 1
   const s1 = document.getElementById('s1');
-  s1.style.opacity = actAlpha(t, acts.s1, .4, .5);
-  s1.style.display = t < 6.2 ? 'grid' : 'none';
+  s1.style.opacity = actAlpha(t, 's1');
+  s1.style.display = t < 5.95 ? 'grid' : 'none';
   const n = typed(document.getElementById('s1type'), S1TEXT, t, .5, 13);
   document.getElementById('s1caret').style.opacity = (Math.floor(t * 2.2) % 2 === 0 && t < 3.6) ? 1 : .12;
   show(document.getElementById('s1sub'), t, 3.5, .7);
@@ -428,8 +444,8 @@ function renderAt(t) {
 
   // ACT 2
   const s2 = document.getElementById('s2');
-  s2.style.opacity = actAlpha(t, acts.s2, .5, .45);
-  s2.style.display = t > 5.8 && t < 14.2 ? 'grid' : 'none';
+  s2.style.opacity = actAlpha(t, 's2');
+  s2.style.display = t > 5.8 && t < 14.05 ? 'grid' : 'none';
   const w2 = document.getElementById('s2win');
   if (w2) {
     const k = easeOut(p(t, 6, .9));
@@ -446,8 +462,8 @@ function renderAt(t) {
 
   // ACT 3
   const s3 = document.getElementById('s3');
-  s3.style.opacity = actAlpha(t, acts.s3, .5, .5);
-  s3.style.display = t > 13.8 && t < 24.2 ? 'grid' : 'none';
+  s3.style.opacity = actAlpha(t, 's3');
+  s3.style.display = t > 13.7 && t < 24.05 ? 'grid' : 'none';
   const w3 = document.getElementById('s3win');
   if (w3) {
     const k = easeInOut(p(t, 14, 9.5));
@@ -511,8 +527,8 @@ function renderAt(t) {
 
   // ACT 4
   const s4 = document.getElementById('s4');
-  s4.style.opacity = actAlpha(t, acts.s4, .5, .5);
-  s4.style.display = t > 23.8 && t < 32.2 ? 'grid' : 'none';
+  s4.style.opacity = actAlpha(t, 's4');
+  s4.style.display = t > 23.7 && t < 31.95 ? 'grid' : 'none';
   const w4 = document.getElementById('s4win');
   if (w4) {
     const k = easeOut(p(t, 24, .8));
@@ -547,8 +563,8 @@ function renderAt(t) {
   if (head) head.textContent = p(t, 29.1, .3) > .5 ? '未读提醒 (0)' : '未读提醒 (2)';
   // ACT 5
   const s5 = document.getElementById('s5');
-  s5.style.opacity = actAlpha(t, acts.s5, .5, .5);
-  s5.style.display = t > 31.8 && t < 39.2 ? 'grid' : 'none';
+  s5.style.opacity = actAlpha(t, 's5');
+  s5.style.display = t > 31.8 && t < 39.6 ? 'grid' : 'none';
   show(document.getElementById('s5card'), t, 32.3, .8);
   const stops = document.querySelectorAll('#s5 .step');
   stops.forEach((el, i) => {
@@ -564,8 +580,8 @@ function renderAt(t) {
 
   // ACT 6
   const s6 = document.getElementById('s6');
-  s6.style.opacity = actAlpha(t, acts.s6, .8, .001);
-  s6.style.display = t > 38.6 ? 'grid' : 'none';
+  s6.style.opacity = actAlpha(t, 's6');
+  s6.style.display = t > 38.9 ? 'grid' : 'none';
   show(document.getElementById('s6mark'), t, 39.2, .9);
   show(document.getElementById('s6tag'), t, 39.9, .8);
   document.getElementById('s6rule').style.opacity = easeOut(p(t, 40.6, .7));
