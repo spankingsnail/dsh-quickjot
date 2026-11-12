@@ -6,7 +6,7 @@ const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const PORT = 9351;
 const W = 1600, H = 900, DSF = 2;
 const FPS = 30;
-const TOTAL = 45.5;
+const TOTAL = 46;
 const OUTDIR = '/tmp/promo-frames';
 
 rmSync(OUTDIR, { recursive: true, force: true });

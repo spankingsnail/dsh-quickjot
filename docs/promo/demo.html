@@ -105,6 +105,16 @@ body{width:var(--stage-w);height:var(--stage-h)}
 #s3page .ssj-calendar{zoom:.52;margin-top:6px}
 #s3page .ssj-calendar-panel summary{font-size:12px;padding:2px 0}
 
+/* ===== act 3b: 随口记 dialog over the page (real .ssj-chat classes) ===== */
+#s3back{position:absolute;inset:0;background:#000000a6;opacity:0;z-index:3;pointer-events:none}
+#s3dlg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;width:660px;max-height:600px;opacity:0;display:flex;flex-direction:column}
+#s3dlg .ssj-chat-log{max-height:250px}
+#s3dlg textarea{display:block;resize:none;width:100%;min-height:74px;line-height:1.6;border-radius:9px;font:inherit;color:inherit;
+  background:var(--dsw-alias-bg-base);border:1px solid var(--dsw-alias-border-l2);padding:10px 12px}
+#s3dlg button{font:inherit;color:inherit;background:var(--dsw-alias-bg-base);border:1px solid var(--dsw-alias-border-l2);border-radius:8px;padding:8px 12px;cursor:pointer}
+#s3dlg .ss-primary{background:var(--dsw-alias-brand-primary);color:var(--dsw-alias-bg-base);border-color:transparent;font-weight:650}
+#s3dlg small{color:var(--dsw-alias-label-secondary);font-size:12px}
+
 /* ===== act 4 reminder ===== */
 .dimwrap{position:absolute;inset:0;background:#06070a}
 #s4 .ssn{position:fixed;right:64px;bottom:auto;top:236px;width:430px;max-width:430px;font-size:14px}
@@ -205,6 +215,31 @@ body{width:var(--stage-w);height:var(--stage-h)}
             </div>
           </div>
         </div>
+        <div id="s3back"></div>
+        <div class="ssj-chat" id="s3dlg">
+          <div class="ssj-chat-top">
+            <h2>随口记 · AI 对话</h2>
+            <div class="ssj-row"><button>打开完整对话</button><button>关闭</button></div>
+          </div>
+          <div class="ssj-chat-log" id="s3dlgLog">
+            <div class="ssj-chat-empty" id="s3dlgEmpty">
+              <strong>先说下来，不必先填表。</strong>
+              <p class="ssj-muted">试着说：帮我记下一个想法；或者，明天上午十点开会。</p>
+              <small>便签和普通待办可以没有日期。时间不清楚时，助手会先问你。</small>
+            </div>
+            <div class="ssj-chat-message" data-role="user" id="s3dlgU"><b>你</b>明天上午十点提醒我续签合同</div>
+            <div class="ssj-chat-message" data-role="assistant" id="s3dlgA"><b>助手</b>记下了：11月13日 10:00 的日程「续签合同」。要不要也发一条微信提醒？需要你事先选好收件目标。</div>
+          </div>
+          <form class="ssj-chat-compose" id="s3dlgForm">
+            <div class="ssj-chat-status" data-state="idle" id="s3dlgSt">发送后会在这里显示接收状态和最终答复。</div>
+            <textarea id="s3dlgTa" placeholder="想记什么，直接说……"></textarea>
+            <div class="ssj-chat-foot">
+              <small>沿用 DSH 模型额度 · Ctrl / ⌘ + Enter 发送</small>
+              <button type="submit" class="ss-primary" id="s3dlgSend">发送</button>
+            </div>
+            <small>只有明确要求记录才建项。微信提醒需先保存收件目标；如需授权或回答选项，请打开完整对话。</small>
+          </form>
+        </div>
       </div>
     </section>
 
@@ -253,14 +288,14 @@ body{width:var(--stage-w);height:var(--stage-h)}
     <section class="scene" id="s6">
       <div style="display:grid;place-items:center;text-align:center">
         <div class="mark rise" id="s6mark">随手记</div>
-        <div class="tag rise" id="s6tag">把对话里的一句话，落成本机上的一个日程。</div>
+        <div class="tag rise" id="s6tag">开口说一句，就记下了。</div>
         <div class="rule rise" id="s6rule"></div>
         <div class="meta rise" id="s6meta">
           <span class="pill accent">dsh-quickjot</span>
           <span class="pill">MIT</span>
           <span class="pill">DeepSeek Harness 插件</span>
         </div>
-        <div class="en rise" id="s6en">TURN ONE SENTENCE INTO A DATED ITEM ON YOUR OWN MACHINE</div>
+        <div class="en rise" id="s6en">SAY IT ONCE. RECORDED ON YOUR OWN MACHINE.</div>
       </div>
     </section>
 
@@ -391,7 +426,7 @@ function typed(el, text, t, s, cps) {
   return n;
 }
 
-const acts = { s1:[0,6], s2:[6,14], s3:[14,24], s4:[24,32], s5:[32,39], s6:[39,45.5] };
+const acts = { s1:[0,6], s2:[6,14], s3:[14,26.4], s4:[26.4,33.4], s5:[33.4,40.0], s6:[40.0,46.0] };
 // Seams. Same-frame beats (window→window, panel→dim) crossfade with a centred .5s
 // overlap. Beats where the outgoing content sits where the incoming one lands (the big
 // opening line, the reminder panel) fade out *before* the next one starts, leaving a
@@ -399,9 +434,10 @@ const acts = { s1:[0,6], s2:[6,14], s3:[14,24], s4:[24,32], s5:[32,39], s6:[39,4
 const SEAM = {
   s1: { out: [5.55, .35] },
   s2: { in: [5.85, .40] },
-  s4: { out: [31.55, .35] },
-  s5: { in: [31.85, .40] },
-  s6: { in: [39.10, .50] },
+  s3: { out: [25.75, .50] },
+  s4: { in: [26.05, .55] },
+  s5: { out: [39.95, .35] },
+  s6: { in: [40.15, .50] },
 };
 function actAlpha(t, key) {
   const [a, b] = acts[key];
@@ -414,10 +450,11 @@ function actAlpha(t, key) {
 const CAPS = [
   [0.2, 5.6, '你和 AI 聊出来的事，大多没被记住。'],
   [6.4, 13.6, '现在，说一句就够了。'],
-  [14.4, 23.6, '它落在本机的账本里：日程、待办、便签，共用一本。'],
-  [24.4, 31.6, '到点了，应用里提醒你 —— 不需要任何额外配置。'],
-  [32.3, 38.6, '也可以推到微信。通道来自 DSH-IM，发送状态可核对。'],
-  [39.4, 45.4, 'github.com/spankingsnail/dsh-quickjot'],
+  [14.4, 21.2, '它落在本机的账本里：日程、待办、便签，共用一本。'],
+  [21.9, 25.5, '不想切页面、不想填表：打开「随口记」，直接说。'],
+  [26.7, 33.1, '到点了，应用里提醒你 —— 不需要任何额外配置。'],
+  [33.8, 39.4, '也可以推到微信。通道来自 DSH-IM，发送状态可核对。'],
+  [40.2, 45.8, 'github.com/spankingsnail/dsh-quickjot'],
 ];
 const S1TEXT = '「明天十点提醒我续签合同。」';
 
@@ -460,15 +497,15 @@ function renderAt(t) {
   const nav = document.getElementById('s2nav');
   if (nav) nav.style.background = t > 12.4 ? '#ffffff10' : '';
 
-  // ACT 3
+  // ACT 3 — one ledger, then the 随口记 dialog on top of it
   const s3 = document.getElementById('s3');
   s3.style.opacity = actAlpha(t, 's3');
-  s3.style.display = t > 13.7 && t < 24.05 ? 'grid' : 'none';
+  s3.style.display = t > 13.7 && t < 26.3 ? 'grid' : 'none';
   const w3 = document.getElementById('s3win');
   if (w3) {
-    const k = easeInOut(p(t, 14, 9.5));
-    const sc = 1.035 - .035 * k;          // slow push-in
-    const ty = -6 + 10 * k;
+    const k = easeInOut(p(t, 14, 11));
+    const sc = 1.03 - .03 * k;
+    const ty = -5 + 9 * k;
     w3.style.transform = `translate(-50%,-50%) scale(${sc}) translateY(${ty}px)`;
     w3.style.opacity = easeOut(p(t, 14, .7));
   }
@@ -476,33 +513,33 @@ function renderAt(t) {
   if (ring) ring.style.opacity = clamp(p(t, 14.6, .5)) * (1 - p(t, 16.4, .6)) * .9;
   const scroll3 = document.getElementById('s3scroll');
   if (scroll3) scroll3.scrollTop = 0;
+
   const cal = document.getElementById('s3page');
   if (cal) {
     const calpanel = cal.querySelector('#calpanel');
     if (calpanel) {
       calpanel.removeAttribute('open');
-      const k = easeOut(p(t, 15.0, .5));
-      calpanel.style.opacity = .3 + .7 * k;
+      calpanel.style.opacity = .3 + .7 * easeOut(p(t, 15.0, .5));
     }
     const cards3 = [...cal.querySelectorAll('.ssj-card')];
     cards3.forEach((c, i) => {
-      const k = easeOut(p(t, 15.3 + i * .22, .55));
+      const k = easeOut(p(t, 15.3 + i * .2, .55));
       c.style.opacity = k;
       c.style.transform = `translateX(${(1 - k) * 14}px)`;
       if (i === 0) {
-        const pulse = clamp(p(t, 17.2, .5)) * (1 - p(t, 19.4, .8));
+        const pulse = clamp(p(t, 16.9, .5)) * (1 - p(t, 18.7, .7));
         c.style.boxShadow = pulse > 0 ? `inset 0 0 0 1.5px rgba(122,162,255,${.5 * pulse})` : 'none';
         c.style.background = pulse > 0 ? `rgba(122,162,255,${.07 * pulse})` : '';
       }
     });
     const grp3 = [...cal.querySelectorAll('.ssj-agenda-group')];
-    grp3.forEach((g, i) => { g.style.opacity = easeOut(p(t, 15.1 + i * .26, .55)); });
+    grp3.forEach((g, i) => { g.style.opacity = easeOut(p(t, 15.1 + i * .24, .55)); });
 
-    // tab switch: 日程 -> 待办 (same ledger, other shape)
+    // tab switch: 日程 -> 待办 (same ledger, another shape)
     const tabs3 = [...cal.querySelectorAll('.ssj-bar > button:not(.ss-primary)')];
-    tabs3.forEach((b, i) => b.classList.toggle('ss-active', i === (t < 20.0 ? 0 : 1)));
-    const schedA = easeOut(p(t, 15.2, .5)) * (1 - easeInOut(p(t, 20.0, .45)));
-    const todoA = easeOut(p(t, 20.05, .5));
+    tabs3.forEach((b, i) => b.classList.toggle('ss-active', i === (t < 18.9 ? 0 : 1)));
+    const schedA = easeOut(p(t, 15.2, .5)) * (1 - easeInOut(p(t, 18.9, .45)));
+    const todoA = easeOut(p(t, 18.95, .5));
     const colSched = cal.querySelector('#col-sched'), colTodo = cal.querySelector('#col-todo');
     if (colSched) { colSched.style.opacity = schedA; colSched.style.display = schedA < .01 ? 'none' : 'block'; }
     if (colTodo) {
@@ -510,40 +547,87 @@ function renderAt(t) {
       colTodo.style.display = todoA < .01 ? 'none' : 'block';
       const tc = [...colTodo.querySelectorAll('.ssj-card')];
       tc.forEach((c, i) => {
-        const k = easeOut(p(t, 20.2 + i * .22, .55));
+        const k = easeOut(p(t, 19.1 + i * .2, .55));
         c.style.opacity = k;
         c.style.transform = `translateY(${(1 - k) * 10}px)`;
       });
       const tg = [...colTodo.querySelectorAll('.ssj-agenda-group')];
-      tg.forEach((g, i) => { g.style.opacity = easeOut(p(t, 20.05 + i * .25, .55)); });
+      tg.forEach((g, i) => { g.style.opacity = easeOut(p(t, 18.95 + i * .22, .55)); });
       const hdr = cal.querySelector('.ssj-agenda-bar h2');
       if (hdr) {
-        hdr.innerHTML = t < 20.0
+        hdr.innerHTML = t < 18.9
           ? '11月12日 周四<small class="ssj-muted"> · 3 项日程</small>'
           : '本周<small class="ssj-muted"> · 4 条待办，2 条没有截止时间</small>';
       }
     }
   }
 
+  // ACT 3b — 「随口记」 opens over the page (dim + real chat dialog)
+  const back3 = document.getElementById('s3back');
+  const dlg = document.getElementById('s3dlg');
+  if (back3 && dlg) {
+    const dim = easeOut(p(t, 20.4, .6));
+    back3.style.opacity = .92 * dim * (1 - easeInOut(p(t, 25.6, .45)));
+    const kin = easeOut(p(t, 20.55, .55)) * (1 - easeInOut(p(t, 25.55, .45)));
+    dlg.style.opacity = kin;
+    dlg.style.transform = `translate(-50%,-50%) scale(${.965 + .035 * kin})`;
+
+    // empty state gives way to the conversation
+    const empty = document.getElementById('s3dlgEmpty');
+    if (empty) empty.style.display = t < 21.1 ? 'block' : 'none';
+
+    // typing into the real composer, then send
+    const ta = document.getElementById('s3dlgTa');
+    if (ta) {
+      const q = '明天上午十点提醒我续签合同';
+      const nq = Math.floor(clamp((t - 21.2) * 15, 0, q.length));
+      ta.value = t < 21.15 ? '' : q.slice(0, nq);
+    }
+    const sendBtn = document.getElementById('s3dlgSend');
+    if (sendBtn) {
+      const press = clamp(p(t, 21.95, .18)) * (1 - p(t, 22.35, .25));
+      sendBtn.style.transform = `scale(${1 - .04 * press})`;
+      sendBtn.style.filter = press > .4 ? 'brightness(1.25)' : '';
+      if (t > 22.0) { const ta2 = document.getElementById('s3dlgTa'); if (ta2) ta2.value = ''; }
+    }
+    const st = document.getElementById('s3dlgSt');
+    if (st) {
+      let msg, state;
+      if (t < 22.0) { state = 'idle'; msg = '发送后会在这里显示接收状态和最终答复。'; }
+      else if (t < 22.6) { state = 'sending'; msg = '正在发送，尚未确认收到……'; }
+      else if (t < 23.5) { state = 'processing'; msg = '已收到，正在处理……'; }
+      else { state = 'answered'; msg = '已答复，请查看上方回答。'; }
+      st.textContent = msg;
+      st.setAttribute('data-state', state);
+    }
+    // the two bubbles
+    const bu = document.getElementById('s3dlgU');
+    if (bu) { const k = easeOut(p(t, 22.05, .45)); bu.style.opacity = k; bu.style.transform = `translateY(${(1 - k) * 8}px)`; }
+    const ba = document.getElementById('s3dlgA');
+    if (ba) { const k = easeOut(p(t, 23.55, .5)); ba.style.opacity = k; ba.style.transform = `translateY(${(1 - k) * 8}px)`; }
+    const log3 = document.getElementById('s3dlgLog');
+    if (log3 && t > 23.5) log3.scrollTop = log3.scrollHeight;
+  }
+
   // ACT 4
   const s4 = document.getElementById('s4');
   s4.style.opacity = actAlpha(t, 's4');
-  s4.style.display = t > 23.7 && t < 31.95 ? 'grid' : 'none';
+  s4.style.display = t > 26.1 && t < 34.05 ? 'grid' : 'none';
   const w4 = document.getElementById('s4win');
   if (w4) {
-    const k = easeOut(p(t, 24, .8));
+    const k = easeOut(p(t, 26.4, .8));
     w4.style.transform = `translate(-50%,-50%) scale(${.98 + .005 * k})`;
     w4.style.filter = `blur(${.6 + 1.4 * k}px) brightness(${1 - .45 * k})`;
   }
   const rem = document.getElementById('s4rem');
   if (rem) {
-    const k = easeOut(p(t, 24.5, .8));
+    const k = easeOut(p(t, 26.9, .8));
     rem.style.opacity = k;
     rem.style.transform = `translate(${(1 - k) * 30}px,${(1 - k) * 20}px)`;
   }
   // mark-read micro interaction
   const marks = document.querySelectorAll('#s4rem .ssn-mark');
-  const readP = p(t, 28.6, .35);
+  const readP = p(t, 31.0, .35);
   marks.forEach((btn, i) => {
     if (readP > 0) {
       btn.textContent = '已读';
@@ -553,22 +637,22 @@ function renderAt(t) {
   });
   const allBtn = document.querySelector('#s4rem .ssn-all');
   if (allBtn) {
-    if (p(t, 28.6, .3) > 0) { allBtn.textContent = '全部已读'; allBtn.disabled = true; allBtn.style.opacity = .5; }
+    if (p(t, 31.0, .3) > 0) { allBtn.textContent = '全部已读'; allBtn.disabled = true; allBtn.style.opacity = .5; }
     else { allBtn.textContent = '本页全部标为已读 (2)'; allBtn.disabled = false; allBtn.style.opacity = 1; }
   }
   const entries = document.querySelectorAll('#s4rem .ssn-entry');
-  const fadeEntries = p(t, 29.1, .5);
+  const fadeEntries = p(t, 31.5, .5);
   entries.forEach(e => { e.style.opacity = 1 - .72 * fadeEntries; });
   const head = document.querySelector('#s4rem .ssn-head strong');
-  if (head) head.textContent = p(t, 29.1, .3) > .5 ? '未读提醒 (0)' : '未读提醒 (2)';
+  if (head) head.textContent = p(t, 31.5, .3) > .5 ? '未读提醒 (0)' : '未读提醒 (2)';
   // ACT 5
   const s5 = document.getElementById('s5');
   s5.style.opacity = actAlpha(t, 's5');
-  s5.style.display = t > 31.8 && t < 39.6 ? 'grid' : 'none';
-  show(document.getElementById('s5card'), t, 32.3, .8);
+  s5.style.display = t > 33.2 && t < 40.05 ? 'grid' : 'none';
+  show(document.getElementById('s5card'), t, 33.8, .8);
   const stops = document.querySelectorAll('#s5 .step');
   stops.forEach((el, i) => {
-    const at = 33.0 + i * .8;
+    const at = 34.5 + i * .8;
     if (i < 2) {
       el.classList.toggle('on', p(t, at, .4) > .5);
       el.style.opacity = .4 + .6 * easeOut(p(t, at, .4));
@@ -581,21 +665,21 @@ function renderAt(t) {
   // ACT 6
   const s6 = document.getElementById('s6');
   s6.style.opacity = actAlpha(t, 's6');
-  s6.style.display = t > 38.9 ? 'grid' : 'none';
-  show(document.getElementById('s6mark'), t, 39.2, .9);
-  show(document.getElementById('s6tag'), t, 39.9, .8);
-  document.getElementById('s6rule').style.opacity = easeOut(p(t, 40.6, .7));
-  document.getElementById('s6rule').style.width = (74 * easeOut(p(t, 40.6, .7))) + 'px';
-  show(document.getElementById('s6meta'), t, 41.1, .8);
-  show(document.getElementById('s6en'), t, 41.7, .8, 45.2, .6);
+  s6.style.display = t > 39.85 ? 'grid' : 'none';
+  show(document.getElementById('s6mark'), t, 40.4, .9);
+  show(document.getElementById('s6tag'), t, 41.0, .8);
+  document.getElementById('s6rule').style.opacity = easeOut(p(t, 41.7, .7));
+  document.getElementById('s6rule').style.width = (74 * easeOut(p(t, 41.7, .7))) + 'px';
+  show(document.getElementById('s6meta'), t, 42.2, .8);
+  show(document.getElementById('s6en'), t, 42.8, .8, 45.7, .6);
 
   // global camera drift
   const cam = document.getElementById('cam');
-  cam.style.transform = `scale(${1 + .008 * (t / 45.5)})`;
+  cam.style.transform = `scale(${1 + .008 * (t / 46)})`;
 }
 
 window.renderAt = renderAt;
-window.TOTAL = 45.5;
+window.TOTAL = 46;
 renderAt(0);
 </script>
 </body>

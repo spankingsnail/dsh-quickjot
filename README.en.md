@@ -2,7 +2,7 @@
 
 # 随手记
 
-**Turn one sentence in a conversation into a dated item on your own machine.**
+**Say it out loud, and it is on the calendar.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![DeepSeek Harness](https://img.shields.io/badge/DeepSeek%20Harness-plugin-5b5bd6.svg)](https://github.com/deepseek-ai)
@@ -12,13 +12,15 @@
 
 </div>
 
-A local calendar plugin for [DeepSeek Harness](https://github.com/deepseek-ai): notes, todos and dated events share one ledger. It reminds you in the app when something is due, and can also send that reminder to WeChat if you have confirmed a target.
+The hardest part of keeping a calendar was never remembering. It is **opening it, filling in a form, picking a date**.
+
+随手记 is a local calendar plugin for [DeepSeek Harness](https://github.com/deepseek-ai) that collapses that into a sentence: notes, todos and dated events share one ledger, one line puts something in it, and it reminds you in the app when it is due — or on WeChat, if you have confirmed a target.
 
 > The plugin's display name is **随手记**; the repository and package name is `dsh-quickjot`. They are the same thing — a Chinese name for daily use, an ASCII identifier for config files and code.
 
-[![45-second demo of 随手记](https://raw.githubusercontent.com/spankingsnail/dsh-quickjot/main/docs/promo/poster.png)](https://github.com/spankingsnail/dsh-quickjot/raw/main/docs/promo/dsh-quickjot-promo.mp4)
+[![46-second demo of 随手记](https://raw.githubusercontent.com/spankingsnail/dsh-quickjot/main/docs/promo/poster.png)](https://github.com/spankingsnail/dsh-quickjot/raw/main/docs/promo/dsh-quickjot-promo.mp4)
 
-<p align="center"><sub>▶ 45-second demo (silent, Chinese subtitles, 2.8 MB). Every item in the footage is fictional.</sub></p>
+<p align="center"><sub>▶ 46-second demo (silent, Chinese subtitles, 3.0 MB). Every item in the footage is fictional.</sub></p>
 
 Everything lives on your machine as one JSON record per item: readable, backup-able, portable.
 
@@ -32,27 +34,36 @@ Most of what you think out loud with an assistant is gone the moment the answer 
 
 "Remind me to renew the contract at ten tomorrow", "note this idea down", "finish the proposal before next Wednesday" — those sentences dissolve into the transcript. What you need is not a smarter assistant but **a place where a sentence becomes an item**.
 
-That place is 随手记:
+And yet the reason people abandon note-taking tools is rarely forgetting. It is friction: to record "meeting at ten tomorrow" you open an app, find New, choose a type, choose a date, choose a time, hit save. **Six steps per record is a habit nobody keeps.**
+
+So the default posture here is: just say it.
 
 - Say it in any conversation; the agent writes the item into the local ledger through the plugin's tools.
-- Open the sidebar and see it: the calendar lists events by month, todos can be checked off, notes keep the ideas that have not crystallised yet.
+- Do not want to leave the page? Click **随口记** in the page header — it is a chat box, not a form: one input, one send button.
+- When you do want to browse or edit, go to the sidebar: the calendar lists events by month, todos can be checked off, notes keep the ideas that have not crystallised yet.
 - When it is due, it reminds you — in-app reminders need no setup at all; WeChat reminders need a target you have saved beforehand.
+
+The form still exists. It is the fallback, not the main path.
 
 What it deliberately does **not** do: it does not read or listen to your other conversations, does not act on todos by itself, does not infer authorisation from quoted material, does not upload anything, and does not make decisions for you.
 
-## Three ways in
+## Three ways in, ordered by motion
 
-| Entry | Good for | Notes |
+Not by where the button sits — by what you are doing when the thought arrives:
+
+| If you are | Use | Notes |
 | --- | --- | --- |
-| Sidebar **随手记** | Manual tidy-up, browsing the calendar | Event / todo / note views; expand the month grid to filter by date |
-| Asking in chat | Recording while you work | The `dsh_quickjot_list` / `dsh_quickjot_write` tools |
-| In-page **随口记** | When you do not want to switch pages | A short chat on your DSH model quota; items land in the same ledger |
+| Talking to the assistant and something comes up | **Say it in chat** | The `dsh_quickjot_list` / `dsh_quickjot_write` tools; no context switch, keep working |
+| Already on the page and cannot be bothered to leave | **随口记 in the page header** | A short chat on your DSH model quota; the item lands in the same ledger, no form |
+| Tidying up, browsing, editing | **Sidebar 随手记** | Event / todo / note views; expand the month grid to filter by date; the full form lives here |
+
+All three write the same ledger. Which one you use depends on how willing you are to walk away from what you were doing.
 
 The UI follows the DSH theme. Dates and due times are always read as **Asia/Shanghai**, never the browser time zone.
 
 ## Design decisions you will notice
 
-**Speaking is the entry point.** The "new item" form is a fallback. Open the page, open 随口记, and say "meeting at ten tomorrow morning" — the assistant splits it into items and asks about anything vague. When the time is unclear it asks first instead of guessing.
+**Speaking is the entry point; the form is a fallback.** Say "meeting at ten tomorrow morning" in 随口记 and the assistant splits it into items and asks about anything vague; when the time is unclear it asks rather than guessing. The form stays because sometimes you really do want to click on a calendar — it just should not be the default.
 
 **Quoting is not authorisation.** Articles you paste, meeting notes, other people's words are all just material. An item is created only when you explicitly ask for it. That rule lives in the plugin's global policy, not in the model's mood of the moment.
 
@@ -64,7 +75,7 @@ The UI follows the DSH theme. Dates and due times are always read as **Asia/Shan
 
 ## Install
 
-> Currently v2.1.0, for the desktop build of DSH (0.2.x). Once listed on dshmarket, the easiest path is to search for **随手记** in the plugin market.
+> Currently v3.0.0, for the desktop build of DSH (0.2.x). Once listed on dshmarket, the easiest path is to search for **随手记** in the plugin market.
 
 Manual:
 
@@ -94,14 +105,18 @@ Run `pnpm install` inside that profile directory and restart DSH. The sidebar sh
 
 ## Using it
 
-**In chat:**
+**The shortest path: open 随手记, click 随口记 in the header, and say it.**
 
-- "Note an idea: add a risk column to the weekly report"
-- "Remind me to renew the contract at ten tomorrow morning"
-- "What is on my schedule this week?"
-- "Mark 'renew contract' as done"
+- "Remind me to renew the contract at ten tomorrow morning" → an event, plus a question about whether to send it to WeChat
+- "Note this idea down: add a risk column to the weekly report" → a note
+- "Finish the proposal before next Wednesday" → a todo with a due date
+- "What is on my schedule this week?" → asking is allowed; not everything has to be recorded
 
-**In the page:** click "+ New note / todo / event", or just say it in 随口记. Notes and plain todos may have no date; an event must have a concrete date and time.
+When something is vague it asks. Notes and plain todos may have no date; an event must have a concrete date and time.
+
+**In chat it works the same way:** say "remember this for me" in any conversation and the agent calls `dsh_quickjot_write`. No need to switch to the plugin page.
+
+**When you do want the form:** click "+ New note / todo / event" in the page. That path still exists — it is just no longer the default.
 
 **Reminders:** unfinished todos and events with a time enter the in-app reminder list automatically — the "Reminders N" button at the bottom right opens the unread list, popping at most three at the moment they come due. To also send some reminders to WeChat, first test and save a target under Settings → IM bot → WeChat, then select it as the default in the page.
 
