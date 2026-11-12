@@ -16,9 +16,7 @@ The hardest part of keeping a calendar was never remembering. It is **opening it
 
 随手记 is a local calendar plugin for [DeepSeek Harness](https://github.com/deepseek-ai) that collapses that into a sentence: notes, todos and dated events share one ledger, one line puts something in it, and it reminds you in the app when it is due — or on WeChat, if you have confirmed a target.
 
-![Demo of 随手记](https://raw.githubusercontent.com/spankingsnail/dsh-quickjot/main/docs/promo/quickjot.gif)
-
-<p align="center"><a href="https://cdn.jsdelivr.net/gh/spankingsnail/dsh-quickjot@main/docs/promo/dsh-quickjot-promo.mp4">Watch the full demo</a></p>
+https://github.com/user-attachments/assets/a22ff3f9-1d85-48d2-b5e3-5d370c5f56a1
 
 Everything lives on your machine as one JSON record per item: readable, backup-able, portable.
 

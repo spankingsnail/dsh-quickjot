@@ -16,9 +16,7 @@
 
 随手记是给 [DeepSeek Harness](https://github.com/deepseek-ai) 用的本机日历插件，把这一步压成一句话：**便签、待办、日程**共用一本账，说一句就落进去；到期时在应用里提醒你，按你的确认也可以发到微信。
 
-![随手记演示](https://raw.githubusercontent.com/spankingsnail/dsh-quickjot/main/docs/promo/quickjot.gif)
-
-<p align="center"><a href="https://cdn.jsdelivr.net/gh/spankingsnail/dsh-quickjot@main/docs/promo/dsh-quickjot-promo.mp4">看完整演示</a></p>
+https://github.com/user-attachments/assets/a22ff3f9-1d85-48d2-b5e3-5d370c5f56a1
 
 数据存在你自己的机器上，逐条 JSON，随时能看、能备份、能带走。
 

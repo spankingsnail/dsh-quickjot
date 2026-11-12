@@ -2,7 +2,9 @@
 
 `dsh-quickjot-promo.mp4` 是完整演示：**无声**、中文硬字幕、片尾一行英文 tagline。
 
-README 顶部内嵌的是 `quickjot.gif`——从中剪出的「随口记」那一幕（760×428，4.6 秒，597KB），点它下面的「看完整演示」才走 jsDelivr 播完整片。这样做的原因是 GitHub 只会内嵌图片，不会把仓库里的 mp4 渲染成播放器。
+README 顶部直接内嵌这个 mp4 的播放器。注意 GitHub 只认 `https://github.com/user-attachments/assets/<uuid>` 这种附件库地址：仓库里的 mp4 无论用相对路径、`raw` 还是 `media.githubusercontents.com` 引用，都会被渲染器清成空段落。附件地址只能在网页的 Issue/PR 评论框或 README 编辑器里拖拽上传得到，没有公开 API。
+
+当前用的是 Issue #1 里上传的那份附件（uploaded 2026-11-12，与 `docs/promo/dsh-quickjot-promo.mp4` 完全一致）。要换片时，重新上传一次并把 `README.md` 与 `README.en.md` 里那行附件 URL 一起替换。
 
 ## 重要：画面里没有真实数据
 
@@ -15,8 +17,7 @@ README 顶部内嵌的是 `quickjot.gif`——从中剪出的「随口记」那�
 | 文件 | 说明 |
 | --- | --- |
 | `dsh-quickjot-promo.mp4` | 成片。1920×1080 / 30fps / H.264 / 46.0s / 约 3.0MB |
-| `quickjot.gif` | README 顶部内嵌的动图，取自 20.6–25.2s 的「随口记」那一幕 |
-| `poster.png` | 静态封面帧（取自 24.6s 的「随口记」对话框），也用作 release 配图 |
+| `poster.png` | 静态封面帧（取自 24.6s 的「随口记」对话框），用作 release 配图 |
 | `demo.html` | 演示页本体：7 幕 + 时间轴引擎，`window.renderAt(t)` 渲染任意时刻 |
 | `capture.mjs` | 只抓指定几帧做检查：`node capture.mjs 21.0 24.6` |
 | `plugin.css` | 从插件源码抽出的样式，保证演示长相与真实界面一致 |
