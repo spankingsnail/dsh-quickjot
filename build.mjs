@@ -1,6 +1,6 @@
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 await mkdir(new URL('./lib/',import.meta.url),{recursive:true});
-for(const name of ['index','core','reminder-core','reminder-host','client']){
+for(const name of ['index','core','service','reminder-core','reminder-host','client']){
   let source=await readFile(new URL(`./src/${name}.mjs`,import.meta.url),'utf8');
   if(name==='client'){
     source=source.replace('/* CHAT_CONTROLLER */',(await readFile(new URL('./src/chat-controller.mjs',import.meta.url),'utf8')).replace(/^export /gm,''));

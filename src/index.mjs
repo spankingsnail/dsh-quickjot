@@ -1,9 +1,11 @@
 import {Notebook,itemSchema,preferenceSchema,NS,ROUTE} from './core.mjs';
+import {createQuickjotService,QUICKJOT_SERVICE} from './service.mjs';
 import {mountInAppReminders} from './reminder-host.mjs';
 export const inject=['storageDomain','connection','tools','systemPrompt'];
 export async function apply(ctx) {
   const domain=await ctx.storageDomain.open({name:'dsh_quickjot',version:1,layout:'per-record',tables:{items:{valueSchema:itemSchema},preferences:{valueSchema:preferenceSchema}}});
   const notebook=new Notebook({items:domain.table('items'),preferences:domain.table('preferences'),getIm:()=>ctx.get('dshIm')});
+  if(typeof ctx.provide==='function') ctx.provide(QUICKJOT_SERVICE,createQuickjotService(notebook));
   ctx.effect(()=>async()=>{await notebook.close(); await domain.close();});
   await notebook.recover();
   await mountInAppReminders(ctx,notebook);

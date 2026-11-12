@@ -6,18 +6,22 @@ import {apply,inject} from '../lib/index.js';
 import {NS,ROUTE} from '../lib/core.js';
 function table(){const map=new Map();return {get:k=>map.get(k),entries:()=>map.entries(),put:async(k,v)=>{map.set(k,structuredClone(v));},delete:async k=>map.delete(k)};}
 test('host registers shared tools and route, both mutate the same durable item records',async()=>{
- const effects=[],tools=new Map(),sections=[],tables={items:table(),preferences:table(),notifications:table()},specs=[];let endpoint,closed=false;
- const ctx={effect:fn=>{const off=fn();if(typeof off==='function')effects.push(off);},storageDomain:{open:async s=>{specs.push(s);return {table:n=>tables[n],close:async()=>{closed=true;}};}},tools:{register:def=>{tools.set(def.name,def);return()=>tools.delete(def.name);}},systemPrompt:{section:def=>{sections.push(def);return()=>{};}},connection:{fetch:{register:def=>{endpoint=def;return()=>{endpoint=null;};}}},get:()=>undefined};
+ const effects=[],tools=new Map(),sections=[],tables={items:table(),preferences:table(),notifications:table()},specs=[],services=new Map();let endpoint,closed=false;
+ const ctx={effect:fn=>{const off=fn();if(typeof off==='function')effects.push(off);},storageDomain:{open:async s=>{specs.push(s);return {table:n=>tables[n],close:async()=>{closed=true;}};}},tools:{register:def=>{tools.set(def.name,def);return()=>tools.delete(def.name);}},systemPrompt:{section:def=>{sections.push(def);return()=>{};}},connection:{fetch:{register:def=>{endpoint=def;return()=>{endpoint=null;};}}},provide:(name,value)=>{services.set(name,value);},get:()=>undefined};
  await apply(ctx);try{
  const spec=specs[0];assert.equal(specs[1].name,'dsh_quickjot_in_app');assert.deepEqual(inject,['storageDomain','connection','tools','systemPrompt']);assert.equal(spec.layout,'per-record');assert.equal(spec.name,'dsh_quickjot');assert.match(spec.name,/^[a-z][a-z0-9_]*$/);assert.equal(endpoint.path,ROUTE);assert.match(sections[0].text,/引用、讨论/);
  const write=tools.get('dsh_quickjot_write'),list=tools.get('dsh_quickjot_list');
  const result=await write.execute({actions:[{op:'create',kind:'todo',title:'跨对话待办'},{op:'create',kind:'event',title:'含糊日程'}]},{callId:'one',agent:{id:'conversation-a'}});
  assert.equal(result.results[0].ok,true);assert.equal(result.results[1].ok,false);
- const snapshot=await list.execute({},{agent:{id:'conversation-b'}});assert.equal(snapshot.items.length,1);assert.equal(snapshot.delivery.available,false);
+ const sameHost=services.get('dshQuickjot');assert.equal(Object.isFrozen(sameHost),true);assert.equal(sameHost.contractVersion,1);
+ const viaService=await sameHost.create({authorization:'explicit-user-request',kind:'todo',title:'同宿主待办',idempotencyKey:'integration-create'});
+ const replay=await sameHost.create({authorization:'explicit-user-request',kind:'todo',title:'同宿主待办',idempotencyKey:'integration-create'});
+ assert.equal(viaService.ok,true);assert.equal(replay.value.id,viaService.value.id);assert.equal(sameHost.list().value.items.length,2);
+ const snapshot=await list.execute({},{agent:{id:'conversation-b'}});assert.equal(snapshot.items.length,2);assert.ok(snapshot.items.some(item=>item.id===viaService.value.id));assert.equal(snapshot.delivery.available,false);
  assert.match(sections[0].text,/不能以配置微信为保存前置条件/);assert.match(write.description,/本地事项无需微信/);assert.match(write.parameters.properties.actions.items.properties.remindAt.description,/无目标先保存本地事项/);
   const local=await write.execute({actions:[{op:'create',kind:'event',title:'不依赖微信的日程',dueAt:'2030-01-02T09:00'},{op:'create',kind:'todo',title:'不依赖微信的行动'}]},{callId:'local',agent:{id:'conversation-b'}});
   assert.ok(local.results.every(r=>r.ok&&r.value.reminder===null));assert.equal(local.results[0].value.dueAt,'2030-01-02T01:00:00.000Z');
-  const viaUi=await endpoint.fetch(new Request('http://localhost'+ROUTE));const uiSnapshot=await viaUi.json();assert.equal(uiSnapshot.items.length,3);assert.ok(uiSnapshot.items.some(x=>x.id===local.results[0].value.id),'tool-created event must appear in the same endpoint consumed by calendar UI');
+  const viaUi=await endpoint.fetch(new Request('http://localhost'+ROUTE));const uiSnapshot=await viaUi.json();assert.equal(uiSnapshot.items.length,4);assert.ok(uiSnapshot.items.some(x=>x.id===local.results[0].value.id),'tool-created event must appear in the same endpoint consumed by calendar UI');
   const item=snapshot.items[0];const response=await endpoint.fetch(new Request('http://localhost'+ROUTE,{method:'POST',body:JSON.stringify({op:'complete',id:item.id,revision:item.revision,done:true})}));assert.equal(response.status,200);
  const persisted=await list.execute({});assert.equal(persisted.items.find(x=>x.id===item.id).done,true);
  const bad=await endpoint.fetch(new Request('http://localhost'+ROUTE,{method:'POST',body:JSON.stringify({op:'delete',id:item.id,revision:1})}));assert.equal(bad.status,400);assert.equal(tables.items.get(item.id).done,true);
