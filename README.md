@@ -16,6 +16,10 @@
 
 > 插件显示名是**随手记**，仓库与包名是 `dsh-calendar`。两者指的是同一个东西：中文名字给日常使用，英文标识给配置文件和代码。
 
+[![随手记 45 秒演示](https://raw.githubusercontent.com/spankingsnail/dsh-calendar/main/docs/promo/poster.png)](https://github.com/spankingsnail/dsh-calendar/raw/main/docs/promo/dsh-calendar-promo.mp4)
+
+<p align="center"><sub>▶ 45 秒演示（无声，中文字幕，2.8MB）。画面里的数据全部是虚构的。</sub></p>
+
 数据存在你自己的机器上，逐条 JSON，随时能看、能备份、能带走。
 
 微信推送那一段不是自己实现的：目标管理与消息通道来自 **[DSH-IM](https://github.com/xmanrui/dsh-im)**，没有它，提醒只会停在应用内。

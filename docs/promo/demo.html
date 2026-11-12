@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>随手记 · promo</title>
+<style>
+/* ===== design tokens (lifted from @deepseek-ai/dsh-client-ui-theme, dark) ===== */
+:root{
+  --dsw-static-neutral-bluish-00:#fff; --dsw-static-neutral-bluish-50:#f9fafb;
+  --dsw-static-neutral-bluish-100:#ebeef2; --dsw-static-neutral-bluish-150:#e9ecf2;
+  --dsw-static-neutral-bluish-200:#e1e5ee; --dsw-static-neutral-bluish-300:#cfd3d6;
+  --dsw-static-neutral-bluish-400:#adb2b8; --dsw-static-neutral-bluish-500:#979da6;
+  --dsw-static-neutral-bluish-600:#81858c; --dsw-static-neutral-bluish-700:#61666b;
+  --dsw-static-neutral-bluish-750:#43454a; --dsw-static-neutral-bluish-800:#353638;
+  --dsw-static-neutral-bluish-850:#2c2c2e; --dsw-static-neutral-bluish-875:#232324;
+  --dsw-static-neutral-bluish-900:#1b1b1c; --dsw-static-neutral-bluish-950:#151517;
+  --dsw-static-neutral-bluish-1000:#0f1115;
+  --dsw-alias-bg-base:var(--dsw-static-neutral-bluish-950);
+  --dsw-alias-bg-layer-1:var(--dsw-static-neutral-bluish-875);
+  --dsw-alias-bg-layer-2:var(--dsw-static-neutral-bluish-850);
+  --dsw-alias-bg-overlay:var(--dsw-static-neutral-bluish-700);
+  --dsw-alias-border-l1:#ffffff0f;
+  --dsw-alias-border-l2:#ffffff1f;
+  --dsw-alias-label-primary:var(--dsw-static-neutral-bluish-50);
+  --dsw-alias-label-secondary:var(--dsw-static-neutral-bluish-400);
+  --dsw-alias-brand-primary:var(--dsw-static-neutral-bluish-50);
+  --ink:#f3f5f8; --dim:#9aa1ab;
+  --accent:#7aa2ff; --accent-soft:#7aa2ff26;
+  --stage-w:1600px; --stage-h:900px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#0b0c0f;overflow:hidden}
+body{width:var(--stage-w);height:var(--stage-h)}
+#stage{position:relative;width:var(--stage-w);height:var(--stage-h);overflow:hidden;
+  background:radial-gradient(120% 100% at 50% 0%,#171a20 0%,#0d0f13 55%,#0a0b0e 100%);
+  color:var(--ink);font-family:"PingFang SC","Helvetica Neue",system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.layer{position:absolute;inset:0}
+#vignette{pointer-events:none;background:radial-gradient(80% 70% at 50% 45%,transparent 55%,#00000066 100%)}
+#grain{pointer-events:none;opacity:.05;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='.55'/></svg>")}
+.scene{position:absolute;inset:0;display:grid;place-items:center;opacity:1}
+.cam{position:absolute;inset:0;transform-origin:50% 50%}
+
+/* ===== captions ===== */
+#cap{position:absolute;left:0;right:0;bottom:30px;display:flex;justify-content:center;pointer-events:none;z-index:40}
+#cap span{max-width:1120px;text-align:center;font-size:25px;line-height:1.45;letter-spacing:.01em;
+  padding:11px 26px;border-radius:999px;background:#0b0d11b8;border:1px solid #ffffff14;
+  backdrop-filter:blur(8px);box-shadow:0 12px 40px #0006}
+
+/* ===== appearance helpers (driven from JS) ===== */
+.rise{will-change:opacity,transform}
+
+/* ===== act 1 ===== */
+#s1 .quote{font-size:56px;line-height:1.42;font-weight:600;letter-spacing:.01em;text-align:center;max-width:1180px}
+#s1 .quote .caret{display:inline-block;width:3px;height:52px;vertical-align:-7px;background:var(--accent);margin-left:4px}
+#s1 .subwrap{margin-top:34px;text-align:center;font-size:30px;color:var(--dim);letter-spacing:.02em}
+#s1 .strike{position:relative;display:inline-block}
+
+/* ===== faux DSH window ===== */
+.win{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);
+  width:1380px;height:740px;border-radius:18px;overflow:hidden;
+  background:#101216;border:1px solid #ffffff17;
+  box-shadow:0 40px 120px #000000a8,0 0 0 1px #00000066, inset 0 1px 0 #ffffff12;
+  display:grid;grid-template-columns:236px 1fr}
+.win .bar{position:absolute;left:0;right:0;top:0;height:38px;display:flex;align-items:center;gap:8px;
+  padding:0 14px;border-bottom:1px solid #ffffff0f;background:#15181d}
+.win .bar i{width:11px;height:11px;border-radius:50%;background:#2e333b;display:block}
+.win .bar .title{margin-left:10px;font-size:12px;color:#7d838d;letter-spacing:.02em}
+.side{padding:52px 14px 16px;border-right:1px solid #ffffff0f;background:#0e1014;position:relative}
+.side .grp{font-size:10px;letter-spacing:.14em;color:#5d636c;margin:0 0 10px 8px}
+.navrow{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;font-size:13px;color:#c9ced6;margin-bottom:4px;position:relative}
+.navrow .ic{width:18px;height:18px;border-radius:6px;background:#2a2f37;flex:none;
+  display:grid;place-items:center;font-size:10px;color:#9aa1ab}
+.navrow.sel{background:#ffffff10;color:#fff}
+.navrow.sel .ic{background:#f9fafb;color:#0f1115}
+.navrow .dotpill{margin-left:auto;font-size:10px;padding:1px 6px;border-radius:999px;background:#ffffff1a;color:#cfd3d6}
+.navrow .ring{position:absolute;inset:-3px;border-radius:12px;border:1.5px solid var(--accent);opacity:0}
+.main{position:relative;padding:52px 0 0;overflow:hidden}
+.main .scroll{position:absolute;inset:52px 0 0;overflow:hidden}
+
+/* ===== act 2 chat ===== */
+.chatwrap{position:absolute;inset:0;padding:34px clamp(28px,3vw,54px);display:flex;flex-direction:column;gap:18px}
+.msg{max-width:74%;border-radius:14px;padding:15px 19px;font-size:16px;line-height:1.68;letter-spacing:.005em}
+.msg.user{align-self:flex-end;background:#20252d;border:1px solid #ffffff14;color:#eef1f5;
+  border-bottom-right-radius:5px}
+.msg.bot{align-self:flex-start;background:#14171c;border:1px solid #ffffff0f;color:#dfe4ea;
+  border-bottom-left-radius:5px}
+.msg .who{font-size:10px;letter-spacing:.16em;color:#6f7681;margin-bottom:7px;text-transform:uppercase}
+.toolchip{align-self:flex-start;display:flex;align-items:center;gap:11px;padding:12px 16px;border-radius:11px;
+  background:#101317;border:1px solid #ffffff1a;font-size:13px;color:#b9c0ca;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.toolchip .ok{width:18px;height:18px;border-radius:50%;background:#7aa2ff24;border:1px solid #7aa2ff77;
+  color:var(--accent);display:grid;place-items:center;font-size:11px;flex:none}
+.toolchip b{color:#eef1f5;font-weight:600}
+.toolchip .sep{color:#3a4049}
+.composer{margin-top:auto;border:1px solid #ffffff17;border-radius:13px;background:#0d1014;padding:14px 16px;
+  display:flex;align-items:center;gap:12px;color:#8b929c;font-size:15px}
+.composer .send{margin-left:auto;background:#f1f3f7;color:#0f1115;border-radius:9px;padding:8px 16px;font-size:13px;font-weight:650}
+
+/* ===== act 3 page (real plugin classes) ===== */
+.pagehost{position:absolute;inset:0;overflow:hidden}
+.pagehost .ssj{padding-top:22px!important}
+/* demo-only: keep the month strip compact so the list stays on screen */
+#s3page .ssj-calendar-panel{padding:6px 12px 10px}
+#s3page .calclip{overflow:hidden;max-height:0}
+#s3page .ssj-calendar{zoom:.52;margin-top:6px}
+#s3page .ssj-calendar-panel summary{font-size:12px;padding:2px 0}
+
+/* ===== act 4 reminder ===== */
+.dimwrap{position:absolute;inset:0;background:#06070a}
+#s4 .ssn{position:fixed;right:64px;bottom:auto;top:236px;width:430px;max-width:430px;font-size:14px}
+#s4 .ssn-list{max-height:330px}
+#s4 .ssn-entry{padding:10px 0}
+#s4 .ssn-help{margin:4px 0}
+#s4 .ssn-toggle{display:none}
+#s4 .ssn-card{box-shadow:0 26px 70px #000000aa,0 0 0 1px #ffffff12}
+#s4 .pulse{position:absolute;border-radius:50%;pointer-events:none;
+  box-shadow:0 0 0 0 #7aa2ff88;border:1.5px solid #7aa2ff}
+
+/* ===== act 5 wechat ===== */
+#s5 .cam{display:grid;place-items:center}
+#s5 .card{width:660px;border-radius:20px;background:#12151a;border:1px solid #ffffff17;
+  box-shadow:0 40px 110px #000000aa;padding:30px 32px}
+#s5 .top{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+#s5 .avatar{width:38px;height:38px;border-radius:11px;background:#1f242c;border:1px solid #ffffff17;
+  display:grid;place-items:center;font-size:15px;color:#dfe4ea}
+#s5 .top .name{font-size:15px;font-weight:600}
+#s5 .top .sub{font-size:12px;color:#7b828c;margin-top:3px}
+#s5 .bubble{background:#1b202a;border:1px solid #ffffff10;border-radius:14px;border-top-left-radius:5px;
+  padding:18px 20px;font-size:16px;line-height:1.7;color:#e8ecf1}
+#s5 .bubble .t{font-size:12px;color:#8f97a2;letter-spacing:.04em;margin-bottom:9px}
+#s5 .states{display:flex;align-items:center;gap:10px;margin-top:20px;font-size:13px;color:#9aa1ab}
+#s5 .step{padding:6px 12px;border-radius:999px;border:1px solid #ffffff17;color:#8b929c}
+#s5 .step.on{border-color:#7aa2ff66;color:#cdd9ff;background:#7aa2ff1a}
+#s5 .arrow{color:#39404a}
+#s5 .note{margin-top:22px;padding-top:18px;border-top:1px solid #ffffff0f;font-size:13px;color:#7d848e;line-height:1.6}
+#s5 .note b{color:#b9c0ca;font-weight:600}
+
+/* ===== act 6 outro ===== */
+#s6{display:grid;place-items:center;text-align:center}
+#s6 .mark{font-size:96px;font-weight:700;letter-spacing:.08em;margin-bottom:8px}
+#s6 .tag{font-size:30px;color:#c6ccd5;letter-spacing:.02em}
+#s6 .meta{margin-top:38px;display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap}
+#s6 .pill{font-size:14px;color:#aab1bb;border:1px solid #ffffff1a;border-radius:999px;padding:9px 17px;background:#ffffff08}
+#s6 .pill.accent{border-color:#7aa2ff55;color:#d3e0ff;background:#7aa2ff14}
+#s6 .en{margin-top:26px;font-size:15px;color:#6f7681;letter-spacing:.06em}
+#s6 .rule{width:74px;height:2px;background:linear-gradient(90deg,transparent,#7aa2ff,transparent);margin:26px auto}
+</style>
+<link rel="stylesheet" href="plugin.css">
+</head>
+<body>
+<div id="stage">
+  <div class="layer"><div class="cam" id="cam">
+
+    <!-- ============ ACT 1 ============ -->
+    <section class="scene" id="s1">
+      <div style="display:grid;place-items:center;text-align:center">
+        <div class="quote rise" id="s1quote"><span id="s1type"></span><span class="caret" id="s1caret"></span></div>
+        <div class="subwrap rise" id="s1sub">然后，它就消失在对话流里。</div>
+      </div>
+    </section>
+
+    <!-- ============ ACT 2 ============ -->
+    <section class="scene" id="s2">
+      <div class="cam">
+        <div class="win rise" id="s2win">
+          <div class="bar"><i></i><i></i><i></i><span class="title">DeepSeek Harness</span></div>
+          <aside class="side">
+            <div class="grp">会话</div>
+            <div class="navrow"><span class="ic">◍</span>合同续签</div>
+            <div class="navrow"><span class="ic">◍</span>周报草稿</div>
+            <div class="grp" style="margin-top:20px">插件</div>
+            <div class="navrow" id="s2nav"><span class="ic">▤</span>随手记</div>
+          </aside>
+          <div class="main">
+            <div class="scroll">
+              <div class="chatwrap">
+                <div class="msg user rise" id="s2u"><div class="who">你</div>明天上午十点提醒我续签合同，另外记一条：方案周五之前写完。</div>
+                <div class="msg bot rise" id="s2b"><div class="who">助手</div>好，两件事都记下了：明天 10:00 的日程，和一条没有具体时间的待办。要不要顺手给待办加个截止？</div>
+                <div class="msg user rise" id="s2u2"><div class="who">你</div>再加一条待办：方案周五之前写完发出去。</div>
+                <div class="msg bot rise" id="s2b2"><div class="who">助手</div>记成待办了，没写死截止时间——你说「周五之前」我再确认一次更好。</div>
+                <div class="toolchip rise" id="s2t"><span class="ok">✓</span><b>dsh_calendar_write</b><span class="sep">·</span>日程 1<span class="sep">·</span>待办 1<span class="sep">·</span>已保存本机</div>
+                <div class="composer rise" id="s2c"><span>想记什么，直接说……</span><span class="send">发送</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ACT 3 ============ -->
+    <section class="scene" id="s3">
+      <div class="cam">
+        <div class="win rise" id="s3win">
+          <div class="bar"><i></i><i></i><i></i><span class="title">DeepSeek Harness</span></div>
+          <aside class="side">
+            <div class="grp">会话</div>
+            <div class="navrow"><span class="ic">◍</span>合同续签</div>
+            <div class="navrow"><span class="ic">◍</span>周报草稿</div>
+            <div class="grp" style="margin-top:20px">插件</div>
+            <div class="navrow sel" id="s3nav"><span class="ic">▤</span>随手记<span class="dotpill">2</span><span class="ring" id="s3ring"></span></div>
+          </aside>
+          <div class="main">
+            <div class="scroll" id="s3scroll">
+              <div class="pagehost" id="s3page"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ACT 4 ============ -->
+    <section class="scene" id="s4">
+      <div class="cam">
+        <div class="win rise" id="s4win">
+          <div class="bar"><i></i><i></i><i></i><span class="title">DeepSeek Harness</span></div>
+          <aside class="side">
+            <div class="grp">会话</div>
+            <div class="navrow"><span class="ic">◍</span>合同续签</div>
+            <div class="navrow"><span class="ic">◍</span>周报草稿</div>
+            <div class="grp" style="margin-top:20px">插件</div>
+            <div class="navrow sel"><span class="ic">▤</span>随手记<span class="dotpill">2</span></div>
+          </aside>
+          <div class="main"><div class="scroll" id="s4page"></div></div>
+        </div>
+        <div id="s4rem" class="rise"></div>
+      </div>
+    </section>
+
+    <!-- ============ ACT 5 ============ -->
+    <section class="scene" id="s5">
+      <div class="cam">
+        <div class="card rise" id="s5card">
+          <div class="top">
+            <div class="avatar">微</div>
+            <div><div class="name">文件传输助手 <span style="color:#7b828c;font-weight:400">· 已保存的收件目标</span></div>
+            <div class="sub">你事先在插件里选好的目标，插件不会自己新建联系人</div></div>
+          </div>
+          <div class="bubble">
+            <div class="t">随手记提醒 · 11月13日 10:00</div>
+            <b>续签合同</b><br>带身份证与上一年度合同原件。
+          </div>
+          <div class="states">
+            <span class="step on">已发送</span><span class="arrow">→</span>
+            <span class="step on">渠道已接受</span><span class="arrow">→</span>
+            <span class="step">等你核对</span>
+          </div>
+          <div class="note">这一段的通道不是自己写的：目标管理、消息投递与发送回执都来自 <b>DSH-IM</b>。发送成功只代表渠道收下了，不代表你已经看过。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ACT 6 ============ -->
+    <section class="scene" id="s6">
+      <div style="display:grid;place-items:center;text-align:center">
+        <div class="mark rise" id="s6mark">随手记</div>
+        <div class="tag rise" id="s6tag">把对话里的一句话，落成本机上的一个日程。</div>
+        <div class="rule rise" id="s6rule"></div>
+        <div class="meta rise" id="s6meta">
+          <span class="pill accent">dsh-calendar</span>
+          <span class="pill">MIT</span>
+          <span class="pill">DeepSeek Harness 插件</span>
+        </div>
+        <div class="en rise" id="s6en">TURN ONE SENTENCE INTO A DATED ITEM ON YOUR OWN MACHINE</div>
+      </div>
+    </section>
+
+  </div></div>
+  <div class="layer" id="vignette"></div>
+  <div class="layer" id="grain"></div>
+  <div id="cap"><span id="captext"></span></div>
+</div>
+
+<script>
+/* ---------------- real plugin page markup (classes come from plugin.css) ---------------- */
+const DAY_ITEMS = {12:2, 13:1, 18:1, 25:1};
+function calendar(){
+  const days = 30, offset = 6; // 2026-11-01 is a Sunday -> +6 blanks in Mon-first grid
+  const names = ['一','二','三','四','五','六','日'];
+  let html = names.map(n => `<span class="ssj-week">${n}</span>`).join('');
+  for (let i = 0; i < offset; i++) html += '<span class="ssj-day"></span>';
+  for (let d = 1; d <= days; d++) {
+    const on = (d === 12 || d === 13 || d === 18 || d === 25) ? ` ss-active` : '';
+    const dot = DAY_ITEMS[d] ? `<span class="ssj-dot">${DAY_ITEMS[d]} 项</span>` : '';
+    html += `<button class="ssj-day${on}">${d}${dot}</button>`;
+  }
+  return `<div class="ssj-calendar">${html}</div>`;
+}
+function card({time, title, body, tag, done, kind}){
+  if (kind === 'note') return `<article class="ssj-card" data-kind="note">
+      <div class="ssj-item-main"><span class="ssj-title">${title}</span>
+      <p class="ssj-body">${body}</p><div class="ssm-tags"><span class="ssj-tag">${tag}</span></div></div>
+      <details class="ssj-more"><summary>⋯</summary><div class="ssj-actions"><button>编辑</button><button>删除</button></div></details>
+    </article>`;
+  return `<article class="ssj-card${done ? ' done' : ''}" data-kind="${kind || 'event'}">
+      <input type="checkbox"${done ? ' checked' : ''}>
+      ${kind === 'todo' ? '' : `<div class="ssj-time">${time}</div>`}
+      <div class="ssj-item-main"><span class="ssj-title">${title}</span>
+      ${body ? `<p class="ssj-body">${body}</p>` : ''}
+      <div class="ssm-tags">${tag ? `<span class="ssj-tag">${tag}</span>` : ''}</div></div>
+      <details class="ssj-more"><summary>⋯</summary><div class="ssj-actions"><button>编辑</button><button>标为完成</button></div></details>
+    </article>`;
+}
+function page(){
+  return `<section class="ssj" aria-label="随手记"><div class="ssj-wrap">
+    <header class="ssj-header">
+      <div>
+        <small>本机共享 / ASIA·SHANGHAI</small>
+        <h1>随手记</h1>
+        <p class="ssj-muted">日程、待办与灵感，都在这里。</p>
+        <p class="ssj-muted">有时间的未完成待办和日程会在应用内提醒，无需微信。退出不提醒；休眠恢复后补提示。</p>
+      </div>
+      <div class="ssj-header-actions"><button>随口记</button><button>返回对话</button></div>
+    </header>
+    <div class="ssj-bar">
+      <button class="ss-active">日程 3</button><button>待办 4</button><button>便签 2</button>
+      <input class="ssj-search" placeholder="查找事项">
+      <button class="ss-primary" data-cta>+ 新建日程</button>
+    </div>
+    <div class="ssj-layout single"><div class="ssj-list-column">
+      <div class="ssj-agenda-bar"><h2>11月12日 周四<small class="ssj-muted"> · 3 项日程</small></h2>
+        <div class="ssj-row"><button>今天</button></div></div>
+      <details class="ssj-calendar-panel" id="calpanel"><summary>按日期筛选</summary><div class="calclip">${calendar()}</div></details>
+      <div class="ssj-list" id="col-sched">
+        <section class="ssj-agenda-group"><h3>今天<small>11月12日 周四</small></h3>
+          <div class="ssj-inset-list">
+            ${card({time:'10:00', title:'续签合同', body:'带身份证与上一年度合同原件。', tag:'工作'})}
+            ${card({time:'15:30', title:'和设计过一遍落地页', body:'', tag:'工作'})}
+            ${card({time:'19:00', title:'取快递', body:'', tag:'生活'})}
+          </div>
+        </section>
+        <section class="ssj-agenda-group"><h3>明天<small>11月13日 周五</small></h3>
+          <div class="ssj-inset-list">
+            ${card({time:'10:00', title:'晨会前对齐需求', body:'', tag:'工作'})}
+          </div>
+        </section>
+      </div>
+      <div class="ssj-list" id="col-todo" style="display:none">
+        <section class="ssj-agenda-group"><h3>本周待办<small>没有截止时间也可以先记下</small></h3>
+          <div class="ssj-inset-list">
+            ${card({title:'把方案写完发出去', body:'先出一版能看的，别抠细节。', tag:'工作', kind:'todo'})}
+            ${card({title:'研究一下下季度的排期', body:'', tag:'工作', kind:'todo'})}
+            ${card({title:'给阳台的绿萝换个大点的盆', body:'', tag:'生活', kind:'todo'})}
+          </div>
+        </section>
+        <section class="ssj-agenda-group"><h3>很久以后<small>会一直躺在列表里，直到你完成它</small></h3>
+          <div class="ssj-inset-list">
+            ${card({title:'看完那本一直没翻开的书', body:'', tag:'生活', kind:'todo'})}
+          </div>
+        </section>
+      </div>
+    </div></div>
+  </div></section>`;
+}
+document.getElementById('s3page').innerHTML = page();
+document.getElementById('s4page').innerHTML = page();
+
+/* reminder center markup (real classes) */
+document.getElementById('s4rem').innerHTML = `<aside class="ssn" aria-label="提醒">
+  <section class="ssn-card ssn-inbox">
+    <div class="ssn-head"><strong>未读提醒 (2)</strong></div>
+    <div class="ssn-actions"><button class="ssn-all">本页全部标为已读 (2)</button><button>查看随手记</button></div>
+    <div class="ssn-list">
+      <article class="ssn-entry"><strong>续签合同</strong>
+        <div class="ssn-meta"><span>日程</span><time>11月12日 10:00</time></div>
+        <p class="ssn-body">带身份证与上一年度合同原件。</p>
+        <button class="ssn-mark">标为已读</button></article>
+      <article class="ssn-entry"><strong>把方案写完发出去</strong>
+        <div class="ssn-meta"><span>待办</span><time>11月13日 10:00</time></div>
+        <button class="ssn-mark">标为已读</button></article>
+    </div>
+    <p class="ssn-help">有时间的未完成待办和日程按截止或日程时间提醒；便签和无时间事项不提醒。</p>
+    <p class="ssn-help">关闭提示不会标为已读；已读不会完成实际待办。</p>
+  </section></aside>`;
+
+/* ---------------- timeline engine ---------------- */
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const p = (t, s, d) => clamp((t - s) / d);
+const easeOut = x => 1 - Math.pow(1 - x, 3);
+const easeInOut = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+function show(el, t, s, d = .55, exit = null, exitDur = .45) {
+  if (!el) return;
+  let a = easeOut(p(t, s, d));
+  if (exit !== null) a *= 1 - easeInOut(p(t, exit, exitDur));
+  el.style.opacity = a;
+  el.style.transform = `translateY(${(1 - easeOut(p(t, s, d))) * 18}px)`;
+  el.style.visibility = a <= .001 ? 'hidden' : 'visible';
+}
+function typed(el, text, t, s, cps) {
+  const n = Math.floor(clamp((t - s) * cps, 0, text.length));
+  el.textContent = text.slice(0, n);
+  return n;
+}
+
+const acts = { s1:[0,6], s2:[6,14], s3:[14,24], s4:[24,32], s5:[32,39], s6:[39,45.5] };
+function actAlpha(t, [a, b], fadeIn = .5, fadeOut = .5) {
+  return clamp(easeOut(p(t, a, fadeIn))) * (1 - easeInOut(p(t, b - fadeOut, fadeOut)));
+}
+const CAPS = [
+  [0.2, 5.6, '你和 AI 聊出来的事，大多没被记住。'],
+  [6.4, 13.6, '现在，说一句就够了。'],
+  [14.4, 23.6, '它落在本机的账本里：日程、待办、便签，共用一本。'],
+  [24.4, 31.6, '到点了，应用里提醒你 —— 不需要任何额外配置。'],
+  [32.3, 38.6, '也可以推到微信。通道来自 DSH-IM，发送状态可核对。'],
+  [39.4, 45.4, 'github.com/spankingsnail/dsh-calendar'],
+];
+const S1TEXT = '「明天十点提醒我续签合同。」';
+
+function renderAt(t) {
+  // captions
+  const capEl = document.getElementById('captext');
+  let cap = '', capA = 0;
+  for (const [a, b, text] of CAPS) {
+    const al = clamp(easeOut(p(t, a, .4))) * (1 - easeOut(p(t, b - .45, .4)));
+    if (al > capA) { capA = al; cap = text; }
+  }
+  capEl.textContent = cap;
+  capEl.style.opacity = capA;
+  capEl.parentElement.style.opacity = capA;
+
+  // ACT 1
+  const s1 = document.getElementById('s1');
+  s1.style.opacity = actAlpha(t, acts.s1, .4, .5);
+  s1.style.display = t < 6.2 ? 'grid' : 'none';
+  const n = typed(document.getElementById('s1type'), S1TEXT, t, .5, 13);
+  document.getElementById('s1caret').style.opacity = (Math.floor(t * 2.2) % 2 === 0 && t < 3.6) ? 1 : .12;
+  show(document.getElementById('s1sub'), t, 3.5, .7);
+  document.getElementById('s1sub').style.color = t > 3.5 ? '#9aa1ab' : '#9aa1ab';
+
+  // ACT 2
+  const s2 = document.getElementById('s2');
+  s2.style.opacity = actAlpha(t, acts.s2, .5, .45);
+  s2.style.display = t > 5.8 && t < 14.2 ? 'grid' : 'none';
+  const w2 = document.getElementById('s2win');
+  if (w2) {
+    const k = easeOut(p(t, 6, .9));
+    w2.style.transform = `translate(-50%,-50%) scale(${.965 + .035 * k})`;
+  }
+  show(document.getElementById('s2u'), t, 6.6, .5);
+  show(document.getElementById('s2b'), t, 7.9, .5);
+  show(document.getElementById('s2u2'), t, 9.5, .5);
+  show(document.getElementById('s2b2'), t, 10.7, .5);
+  show(document.getElementById('s2t'), t, 11.9, .5);
+  show(document.getElementById('s2c'), t, 7.2, .6);
+  const nav = document.getElementById('s2nav');
+  if (nav) nav.style.background = t > 12.4 ? '#ffffff10' : '';
+
+  // ACT 3
+  const s3 = document.getElementById('s3');
+  s3.style.opacity = actAlpha(t, acts.s3, .5, .5);
+  s3.style.display = t > 13.8 && t < 24.2 ? 'grid' : 'none';
+  const w3 = document.getElementById('s3win');
+  if (w3) {
+    const k = easeInOut(p(t, 14, 9.5));
+    const sc = 1.035 - .035 * k;          // slow push-in
+    const ty = -6 + 10 * k;
+    w3.style.transform = `translate(-50%,-50%) scale(${sc}) translateY(${ty}px)`;
+    w3.style.opacity = easeOut(p(t, 14, .7));
+  }
+  const ring = document.getElementById('s3ring');
+  if (ring) ring.style.opacity = clamp(p(t, 14.6, .5)) * (1 - p(t, 16.4, .6)) * .9;
+  const scroll3 = document.getElementById('s3scroll');
+  if (scroll3) scroll3.scrollTop = 0;
+  const cal = document.getElementById('s3page');
+  if (cal) {
+    const calpanel = cal.querySelector('#calpanel');
+    if (calpanel) {
+      calpanel.removeAttribute('open');
+      const k = easeOut(p(t, 15.0, .5));
+      calpanel.style.opacity = .3 + .7 * k;
+    }
+    const cards3 = [...cal.querySelectorAll('.ssj-card')];
+    cards3.forEach((c, i) => {
+      const k = easeOut(p(t, 15.3 + i * .22, .55));
+      c.style.opacity = k;
+      c.style.transform = `translateX(${(1 - k) * 14}px)`;
+      if (i === 0) {
+        const pulse = clamp(p(t, 17.2, .5)) * (1 - p(t, 19.4, .8));
+        c.style.boxShadow = pulse > 0 ? `inset 0 0 0 1.5px rgba(122,162,255,${.5 * pulse})` : 'none';
+        c.style.background = pulse > 0 ? `rgba(122,162,255,${.07 * pulse})` : '';
+      }
+    });
+    const grp3 = [...cal.querySelectorAll('.ssj-agenda-group')];
+    grp3.forEach((g, i) => { g.style.opacity = easeOut(p(t, 15.1 + i * .26, .55)); });
+
+    // tab switch: 日程 -> 待办 (same ledger, other shape)
+    const tabs3 = [...cal.querySelectorAll('.ssj-bar > button:not(.ss-primary)')];
+    tabs3.forEach((b, i) => b.classList.toggle('ss-active', i === (t < 20.0 ? 0 : 1)));
+    const schedA = easeOut(p(t, 15.2, .5)) * (1 - easeInOut(p(t, 20.0, .45)));
+    const todoA = easeOut(p(t, 20.05, .5));
+    const colSched = cal.querySelector('#col-sched'), colTodo = cal.querySelector('#col-todo');
+    if (colSched) { colSched.style.opacity = schedA; colSched.style.display = schedA < .01 ? 'none' : 'block'; }
+    if (colTodo) {
+      colTodo.style.opacity = todoA;
+      colTodo.style.display = todoA < .01 ? 'none' : 'block';
+      const tc = [...colTodo.querySelectorAll('.ssj-card')];
+      tc.forEach((c, i) => {
+        const k = easeOut(p(t, 20.2 + i * .22, .55));
+        c.style.opacity = k;
+        c.style.transform = `translateY(${(1 - k) * 10}px)`;
+      });
+      const tg = [...colTodo.querySelectorAll('.ssj-agenda-group')];
+      tg.forEach((g, i) => { g.style.opacity = easeOut(p(t, 20.05 + i * .25, .55)); });
+      const hdr = cal.querySelector('.ssj-agenda-bar h2');
+      if (hdr) {
+        hdr.innerHTML = t < 20.0
+          ? '11月12日 周四<small class="ssj-muted"> · 3 项日程</small>'
+          : '本周<small class="ssj-muted"> · 4 条待办，2 条没有截止时间</small>';
+      }
+    }
+  }
+
+  // ACT 4
+  const s4 = document.getElementById('s4');
+  s4.style.opacity = actAlpha(t, acts.s4, .5, .5);
+  s4.style.display = t > 23.8 && t < 32.2 ? 'grid' : 'none';
+  const w4 = document.getElementById('s4win');
+  if (w4) {
+    const k = easeOut(p(t, 24, .8));
+    w4.style.transform = `translate(-50%,-50%) scale(${.98 + .005 * k})`;
+    w4.style.filter = `blur(${.6 + 1.4 * k}px) brightness(${1 - .45 * k})`;
+  }
+  const rem = document.getElementById('s4rem');
+  if (rem) {
+    const k = easeOut(p(t, 24.5, .8));
+    rem.style.opacity = k;
+    rem.style.transform = `translate(${(1 - k) * 30}px,${(1 - k) * 20}px)`;
+  }
+  // mark-read micro interaction
+  const marks = document.querySelectorAll('#s4rem .ssn-mark');
+  const readP = p(t, 28.6, .35);
+  marks.forEach((btn, i) => {
+    if (readP > 0) {
+      btn.textContent = '已读';
+      btn.disabled = true;
+      btn.style.opacity = .5;
+    } else { btn.textContent = '标为已读'; btn.disabled = false; btn.style.opacity = 1; }
+  });
+  const allBtn = document.querySelector('#s4rem .ssn-all');
+  if (allBtn) {
+    if (p(t, 28.6, .3) > 0) { allBtn.textContent = '全部已读'; allBtn.disabled = true; allBtn.style.opacity = .5; }
+    else { allBtn.textContent = '本页全部标为已读 (2)'; allBtn.disabled = false; allBtn.style.opacity = 1; }
+  }
+  const entries = document.querySelectorAll('#s4rem .ssn-entry');
+  const fadeEntries = p(t, 29.1, .5);
+  entries.forEach(e => { e.style.opacity = 1 - .72 * fadeEntries; });
+  const head = document.querySelector('#s4rem .ssn-head strong');
+  if (head) head.textContent = p(t, 29.1, .3) > .5 ? '未读提醒 (0)' : '未读提醒 (2)';
+  // ACT 5
+  const s5 = document.getElementById('s5');
+  s5.style.opacity = actAlpha(t, acts.s5, .5, .5);
+  s5.style.display = t > 31.8 && t < 39.2 ? 'grid' : 'none';
+  show(document.getElementById('s5card'), t, 32.3, .8);
+  const stops = document.querySelectorAll('#s5 .step');
+  stops.forEach((el, i) => {
+    const at = 33.0 + i * .8;
+    if (i < 2) {
+      el.classList.toggle('on', p(t, at, .4) > .5);
+      el.style.opacity = .4 + .6 * easeOut(p(t, at, .4));
+    } else {
+      el.classList.remove('on');
+      el.style.opacity = .38 + .3 * easeOut(p(t, at, .5));
+    }
+  });
+
+  // ACT 6
+  const s6 = document.getElementById('s6');
+  s6.style.opacity = actAlpha(t, acts.s6, .8, .001);
+  s6.style.display = t > 38.6 ? 'grid' : 'none';
+  show(document.getElementById('s6mark'), t, 39.2, .9);
+  show(document.getElementById('s6tag'), t, 39.9, .8);
+  document.getElementById('s6rule').style.opacity = easeOut(p(t, 40.6, .7));
+  document.getElementById('s6rule').style.width = (74 * easeOut(p(t, 40.6, .7))) + 'px';
+  show(document.getElementById('s6meta'), t, 41.1, .8);
+  show(document.getElementById('s6en'), t, 41.7, .8, 45.2, .6);
+
+  // global camera drift
+  const cam = document.getElementById('cam');
+  cam.style.transform = `scale(${1 + .008 * (t / 45.5)})`;
+}
+
+window.renderAt = renderAt;
+window.TOTAL = 45.5;
+renderAt(0);
+</script>
+</body>
+</html>

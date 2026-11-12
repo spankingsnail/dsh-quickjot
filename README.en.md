@@ -16,6 +16,10 @@ A local calendar plugin for [DeepSeek Harness](https://github.com/deepseek-ai): 
 
 > The plugin's display name is **随手记**; the repository and package name is `dsh-calendar`. They are the same thing — a Chinese name for daily use, an ASCII identifier for config files and code.
 
+[![45-second demo of 随手记](https://raw.githubusercontent.com/spankingsnail/dsh-calendar/main/docs/promo/poster.png)](https://github.com/spankingsnail/dsh-calendar/raw/main/docs/promo/dsh-calendar-promo.mp4)
+
+<p align="center"><sub>▶ 45-second demo (silent, Chinese subtitles, 2.8 MB). Every item in the footage is fictional.</sub></p>
+
 Everything lives on your machine as one JSON record per item: readable, backup-able, portable.
 
 The WeChat part is not our own work: target management and the message channel come from **[DSH-IM](https://github.com/xmanrui/dsh-im)**. Without it, reminders would stop at the in-app list.
