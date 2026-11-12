@@ -9,7 +9,7 @@ The note/task/calendar organization and native sidebar registration pattern info
 
 Delivery integration: @xmanrui/dsh-im (DSH-IM) 5.10.0, MIT, Copyright (c) xmanrui (https://github.com/xmanrui).
 The WeChat reminder feature exists only because of DSH-IM's technology: target management, the IM delivery channel
-and send receipts all come from that plugin. 随手记 (repo: dsh-calendar) adds only the item-to-target selection, records delivery
+and send receipts all come from that plugin. 随手记 (repo: dsh-quickjot) adds only the item-to-target selection, records delivery
 state locally, and lets the user verify the outcome. It calls the `dshIm` service for delivery and never creates
 targets, reads credentials or contacts the channel on its own. DSH-IM itself is not bundled or redistributed here.
 

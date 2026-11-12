@@ -61,7 +61,7 @@ test('ready binding with openState error is not treated as an open session',asyn
 const assistantEvent=(seq,turn,content,extra={})=>({type:'event',event:{seq,type:'assistant/message',data:{turn,message:{role:'assistant',content},...extra}}});
 const turnEnd=(seq,turn,kind='completed')=>({type:'event',event:{seq,type:'turn/end',data:{turn,reason:{kind}}}});
 test('answer-only view hides commentary, reasoning, tools and exposes only final answer',()=>{
- const entries=[assistantEvent(1,1,[{type:'text',text:'我先检查一下'},{type:'tool-call',name:'dsh_calendar_list',arguments:'secret'}]),{type:'event',event:{seq:2,type:'tool/result',data:{text:'private result'}}},assistantEvent(3,1,[{type:'text',text:'接下来我会核对'}]),assistantEvent(4,1,[{type:'reasoning',text:'private thought'},{type:'text',text:'现有事项共 0 条。'}]),turnEnd(5,1)];
+ const entries=[assistantEvent(1,1,[{type:'text',text:'我先检查一下'},{type:'tool-call',name:'dsh_quickjot_list',arguments:'secret'}]),{type:'event',event:{seq:2,type:'tool/result',data:{text:'private result'}}},assistantEvent(3,1,[{type:'text',text:'接下来我会核对'}]),assistantEvent(4,1,[{type:'reasoning',text:'private thought'},{type:'text',text:'现有事项共 0 条。'}]),turnEnd(5,1)];
  assert.deepEqual(chatMessages(entries).map(m=>m.text),['现有事项共 0 条。']);
 });
 test('in-progress assistant text is hidden until completed turn event',()=>{
@@ -124,7 +124,7 @@ test('failed, blocked and stopped turns have distinct feedback and never expose 
  }
 });
 test('completed turn without final text has explicit no-answer status instead of borrowing commentary',async()=>{
- const f=fixture({saved:'existing'});await f.c.connect();f.events.set({entries:[human(1),assistantEvent(2,1,[{type:'text',text:'先查询'}]),assistantEvent(3,1,[{type:'tool-call',name:'dsh_calendar_list'}]),turnEnd(4,1)]});
+ const f=fixture({saved:'existing'});await f.c.connect();f.events.set({entries:[human(1),assistantEvent(2,1,[{type:'text',text:'先查询'}]),assistantEvent(3,1,[{type:'tool-call',name:'dsh_quickjot_list'}]),turnEnd(4,1)]});
  assert.equal(f.c.getSnapshot().delivery,'no-answer');assert.deepEqual(f.c.getSnapshot().messages.map(m=>m.text),['查询事项']);f.c.dispose();
 });
 test('callbacks from an older failed request cannot overwrite a later accepted request',async()=>{

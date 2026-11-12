@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 
 const source = await readFile(new URL('../src/reminder-client.mjs', import.meta.url), 'utf8');
-const route = '/api/dsh-calendar/in-app-reminders';
+const route = '/api/dsh-quickjot/in-app-reminders';
 const walk = node => !node || typeof node !== 'object' ? [] : [node, ...(node.children || []).flat(Infinity).flatMap(walk)];
 const text = node => !node ? '' : typeof node === 'object' ? (node.children || []).flat(Infinity).map(text).join(' ').trim() : String(node);
 const flush = () => new Promise(resolve => setImmediate(resolve));
@@ -77,7 +77,7 @@ test('always mounted lightweight reminder button, nonmodal region, accurate loca
   assert.ok(!view.nodes.some(node => node.props.role === 'dialog' || node.props.autoFocus));
   assert.match(view.text,/暂无未读提醒/); assert.match(view.text,/便签和无时间事项不提醒/);
   assert.match(view.text,/休眠恢复后补提示。不需要微信/); assert.match(view.text,/已读不会完成实际待办/);
-  await f.click('查看随手记'); assert.deepEqual(f.selected,['dsh-calendar:page']);
+  await f.click('查看随手记'); assert.deepEqual(f.selected,['dsh-quickjot:page']);
   assert.equal(f.calls.filter(call => call.action?.op === 'read').length,0);
   f.unmount(); assert.equal(f.timers.size,0);
 });

@@ -1,15 +1,17 @@
 # 验证记录
 
-## 最新状态：v2.1.0 显示名回到「随手记」+ README 中英双语（2026-11-12，上海）
+## 最新状态：v3.0.0 标识符改名 dsh-quickjot（2026-11-12，上海）
 
-- 用户要求：插件显示名应为中文「随手记」；仓库名与将来提交给 DSH 的 PR 仍叫 `dsh-calendar`；README 默认中文，并提供可点击的英文切换（点击后是纯英文介绍）。
-- 显示名改动只在用户可见文案层：`src/client.mjs`、`src/reminder-client.mjs`、`src/reminder-host.mjs`、`src/core.mjs`、`src/index.mjs` 中 23 处 `DSH-Calendar` 品牌串替换为 `随手记`（含侧栏 label、页面 aria-label、提醒浮层 label、微信提醒正文前缀、工具描述、系统提示首句、错误与日志）。系统提示首句改为「随手记（仓库名 dsh-calendar）是当前本机配置跨对话共享的便签、待办、日程。」，让模型同时知道显示名与仓库名。
-- **内部标识一律未改**：包名/模块 id `dsh-calendar`、页面 `dsh-calendar:page`、路由 `/api/dsh-calendar/items` 与 `/api/dsh-calendar/in-app-reminders`、存储域 `dsh_calendar` 与 `dsh_calendar_in_app`、工具 `dsh_calendar_list` / `dsh_calendar_write` / `dsh_calendar_in_app_reminders`、locale id `dsh-calendar`、`cordis.patch.yml` 全部保持原样，已安装用户的配置与既有数据不受影响。
-- locale：`locale/zh.json` title 改为「随手记 · 日程、待办与便签」并在 description 注明仓库名 dsh-calendar；`locale/en.json` title 改为「随手记 · Notes, tasks & calendar」。
-- README 拆成两份：`README.md` 为中文主版（顶部居中 badge 行 + 「English / 简体中文」切换链接），新增 `README.en.md` 为纯英文全文，两份首尾互相链接；同时把 `README.en.md` 加入 `package.json` 的 `files`。版本号 2.0.0 → 2.1.0。
-- 同步修正断言：`test/core.test.mjs` 微信正文 `/随手记提醒/`、`test/reminder-ui.test.mjs` 点击「查看随手记」、`test/integration.test.mjs` 侧栏 label `随手记`、页面 aria-label `随手记`、浮层 label `随手记提醒`。
-- 重新执行 `node localize.mjs`、`node build.mjs`、`node --check lib/client.js`；全量 **120/120 通过、0 失败 0 跳过**。
-- 本记录仍只覆盖代码、构建与自动化测试；中英文 README 的 GitHub 渲染效果、badge 链接与语言切换需在推送后于网页端确认。
+- 起因：`dsh-calendar` 这个标识在 GitHub 上有 9 个同名仓库，npm 上的 `dsh-calendar` 属于另一个项目（月下载 7250+）。用这个名字既排不进搜索结果，也会让 `npm i dsh-calendar` 的人装错东西。用户决定改名为 `dsh-quickjot`，并「尽可能统一，该迁移就迁移一次」。
+- 改动范围（全部一次性替换，`grep -rn "dsh-calendar\|dsh_calendar" src/ package.json cordis.patch.yml locale/ build.mjs test/` 已为 0 命中）：包名/模块 id `dsh-quickjot`；页面 `dsh-quickjot:page`；路由 `/api/dsh-quickjot/items`、`/api/dsh-quickjot/in-app-reminders`；`src/core.mjs` 的 `NS`/`ROUTE`；`src/client.mjs` 的模块 id、页面 id、URL、locale id、localStorage key 前缀；`src/reminder-*.mjs` 的路由与 `selectPanel('dsh-quickjot:page')`；`cordis.patch.yml`；`locale/zh.json`；`package.json` 的 name/description。
+- 工具名：`dsh_quickjot_list`、`dsh_quickjot_write`、`dsh_quickjot_in_app_reminders`；系统提示首句「随手记（仓库名 dsh-quickjot）…」与描述中的工具名同步。
+- 存储域迁移：`~/.dsh/storages/dsh_calendar` → `dsh_quickjot`（16 项 + preferences），`dsh_calendar_in_app` → `dsh_quickjot_in_app`（6 条通知），用 `cp -R` 原样复制并 `diff -r` 校验一致；旧目录保留未删。迁移前备份在 `/Users/snail/.dsh/im/.backup/2026-11-12-rename/`（含 desktop-package.json）。
+- 本机安装：仓库目录 `mv dsh-calendar dsh-quickjot`；`~/.dsh/profiles/desktop/package.json` 依赖改为 `"dsh-quickjot": "link:/Users/snail/.dsh/im/dsh-quickjot"`，`dsh.profile.bundles` 中 `dsh-calendar` 同步改名；`pnpm install` 输出 `+ dsh-quickjot 3.0.0 <- ../../im/dsh-quickjot`；删除残留 `node_modules/dsh-calendar` 符号链接；`plugin_manager set_bundle dsh-quickjot enabled=true` 返回 `applied`（唯一 warning 是既有的 experimental-inspector `globalThis.fetch is an accessor`）。
+- 数据核对：`dsh_quickjot_list` 返回 16 条事项、preference.target 仍为 botId `wx_e2c89425f59535b41c239fc8` / targetId `tgt_109d9d202adf12eb`；`dsh_quickjot_in_app_reminders list` 返回 unreadCount 2（「处理报销相关事项」「阅读阿里云原生白皮书」missed:true）。
+- 文档：`README.md` / `README.en.md` 全部链接与命令改为 `dsh-quickjot`，命名章节重写为「关于名字」（含 GitHub/npm 冲突事实与升级说明）；`THIRD_PARTY_NOTICES.md`、`docs/promo/*`（demo.html 的工具 chip、片尾地址、extract-css 路径、plugin.css 注释）同步；宣传片 `git mv` 为 `docs/promo/dsh-quickjot-promo.mp4`。
+- 打包：`package.json` 版本 2.1.0 → **3.0.0**（标识符不兼容变更），新增 `repository` / `homepage` / `bugs` / `keywords`。
+- 全量 `node build.mjs`、`node --check lib/client.js`、`node --test test/*.test.mjs` → **120/120 通过、0 失败 0 跳过**（改名后未改任何用例语义，只替换字面量）。
+- 未验证：GitHub 网页端改名后的 302 跳转、README 徽章与宣传片 raw 链接的实际加载、宣传片内容仍是旧片尾文字（如需更新需重出片）。
 
 ## v2.0.0：精简为日历插件（2026-11-12，上海）
 

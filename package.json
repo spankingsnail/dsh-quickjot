@@ -1,10 +1,27 @@
 {
-  "name": "dsh-calendar",
-  "version": "2.1.0",
+  "name": "dsh-quickjot",
+  "version": "3.0.0",
   "private": true,
   "type": "module",
   "license": "MIT",
-  "description": "随手记（仓库名 dsh-calendar）：DeepSeek Harness 里的跨对话便签、待办与日历日程，支持应用内提醒与运行期间的微信提醒",
+  "description": "随手记（仓库名 dsh-quickjot）：DeepSeek Harness 里的跨对话便签、待办与日历日程，支持应用内提醒与运行期间的微信提醒",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spankingsnail/dsh-quickjot.git"
+  },
+  "homepage": "https://github.com/spankingsnail/dsh-quickjot#readme",
+  "bugs": {
+    "url": "https://github.com/spankingsnail/dsh-quickjot/issues"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "dsh-plugin",
+    "calendar",
+    "todo",
+    "notes",
+    "reminder"
+  ],
   "icon": "./icon.svg",
   "exports": {
     ".": "./lib/index.js",

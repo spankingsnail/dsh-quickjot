@@ -74,7 +74,7 @@ const ff = spawn('/opt/homebrew/bin/ffmpeg', [
   '-c:v', 'libx264', '-preset', 'slow', '-crf', '18',
   '-profile:v', 'high', '-level', '4.2', '-tune', 'animation',
   '-movflags', '+faststart', '-an',
-  new URL('./dsh-calendar-promo.mp4', import.meta.url).pathname,
+  new URL('./dsh-quickjot-promo.mp4', import.meta.url).pathname,
 ], { stdio: ['pipe', 'inherit', 'inherit'] });
 
 const total = Math.round(TOTAL * FPS);

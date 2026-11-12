@@ -1,6 +1,6 @@
 # 宣传视频素材
 
-`dsh-calendar-promo.mp4` 是仓库 README 顶部那段 45 秒演示：**无声**、中文硬字幕、片尾一行英文 tagline。
+`dsh-quickjot-promo.mp4` 是仓库 README 顶部那段 45 秒演示：**无声**、中文硬字幕、片尾一行英文 tagline。
 
 ## 重要：画面里没有真实数据
 
@@ -12,7 +12,7 @@
 
 | 文件 | 说明 |
 | --- | --- |
-| `dsh-calendar-promo.mp4` | 成片。1920×1080 / 30fps / H.264 / 45.5s / 约 2.8MB |
+| `dsh-quickjot-promo.mp4` | 成片。1920×1080 / 30fps / H.264 / 45.5s / 约 2.8MB |
 | `poster.png` | README 里的封面帧（取自 18.4s 的日程列表） |
 | `demo.html` | 演示页本体：6 幕 + 时间轴引擎，`window.renderAt(t)` 渲染任意时刻 |
 | `plugin.css` | 从插件源码抽出的样式，保证演示长相与真实界面一致 |
@@ -27,7 +27,7 @@
 ```bash
 node extract-css.mjs            # 插件改了样式后，先重新抽取
 open demo.html                  # 想让窗口在浏览器里拖时间轴看效果
-node render.mjs                 # 输出 dsh-calendar-promo.mp4
+node render.mjs                 # 输出 dsh-quickjot-promo.mp4
 ```
 
 `render.mjs` 用 CDP 把 `renderAt(t)` 逐帧喂给页面再截图，通过管道直接写给 ffmpeg，不落中间帧文件。整片在本机约 2.5 分钟出片。
@@ -43,6 +43,6 @@ node render.mjs                 # 输出 dsh-calendar-promo.mp4
 | 14–24s | 侧栏切到随手记，日程列表 / 收起的月历 / 待办页签 | 它落在本机的账本里：日程、待办、便签，共用一本。 |
 | 24–32s | 背景压暗，未读提醒面板 + 标为已读 | 到点了，应用里提醒你 —— 不需要任何额外配置。 |
 | 32–39s | 微信气泡 + 三态（已发送 / 渠道已接受 / 等你核对） | 也可以推到微信。通道来自 DSH-IM，发送状态可核对。 |
-| 39–45.5s | 片名 + tagline + 仓库/MIT/插件 | github.com/spankingsnail/dsh-calendar |
+| 39–45.5s | 片名 + tagline + 仓库/MIT/插件 | github.com/spankingsnail/dsh-quickjot |
 
 第 5 幕那句「通道来自 DSH-IM」是有意放在片中的：微信推送不是这个插件自己实现的，成片里不该把这个功劳算在自己头上。

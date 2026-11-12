@@ -9,8 +9,8 @@ test('host registers shared tools and route, both mutate the same durable item r
  const effects=[],tools=new Map(),sections=[],tables={items:table(),preferences:table(),notifications:table()},specs=[];let endpoint,closed=false;
  const ctx={effect:fn=>{const off=fn();if(typeof off==='function')effects.push(off);},storageDomain:{open:async s=>{specs.push(s);return {table:n=>tables[n],close:async()=>{closed=true;}};}},tools:{register:def=>{tools.set(def.name,def);return()=>tools.delete(def.name);}},systemPrompt:{section:def=>{sections.push(def);return()=>{};}},connection:{fetch:{register:def=>{endpoint=def;return()=>{endpoint=null;};}}},get:()=>undefined};
  await apply(ctx);try{
- const spec=specs[0];assert.equal(specs[1].name,'dsh_calendar_in_app');assert.deepEqual(inject,['storageDomain','connection','tools','systemPrompt']);assert.equal(spec.layout,'per-record');assert.equal(spec.name,'dsh_calendar');assert.match(spec.name,/^[a-z][a-z0-9_]*$/);assert.equal(endpoint.path,ROUTE);assert.match(sections[0].text,/引用、讨论/);
- const write=tools.get('dsh_calendar_write'),list=tools.get('dsh_calendar_list');
+ const spec=specs[0];assert.equal(specs[1].name,'dsh_quickjot_in_app');assert.deepEqual(inject,['storageDomain','connection','tools','systemPrompt']);assert.equal(spec.layout,'per-record');assert.equal(spec.name,'dsh_quickjot');assert.match(spec.name,/^[a-z][a-z0-9_]*$/);assert.equal(endpoint.path,ROUTE);assert.match(sections[0].text,/引用、讨论/);
+ const write=tools.get('dsh_quickjot_write'),list=tools.get('dsh_quickjot_list');
  const result=await write.execute({actions:[{op:'create',kind:'todo',title:'跨对话待办'},{op:'create',kind:'event',title:'含糊日程'}]},{callId:'one',agent:{id:'conversation-a'}});
  assert.equal(result.results[0].ok,true);assert.equal(result.results[1].ok,false);
  const snapshot=await list.execute({},{agent:{id:'conversation-b'}});assert.equal(snapshot.items.length,1);assert.equal(snapshot.delivery.available,false);

@@ -14,8 +14,8 @@ async function fixture(){
 }
 test('mount adds a dedicated domain, authenticated shared route and bounded deferred tool, without creating items',async()=>{
   const f=await fixture();try{
-    assert.equal(f.spec.name,'dsh_calendar_in_app');assert.equal(f.spec.layout,'per-record');assert.deepEqual(f.routes.get(IN_APP_ROUTE).methods,['GET','POST']);assert.equal(f.items.data.size,0);
-    const tool=f.tools.get('dsh_calendar_in_app_reminders');assert.equal(tool.deferLoading,true);assert.deepEqual(tool.parameters.properties.op.enum,['list','read']);assert.equal(tool.parameters.properties.ids.maxItems,100);assert.equal((await tool.execute({op:'list'})).unreadCount,0);
+    assert.equal(f.spec.name,'dsh_quickjot_in_app');assert.equal(f.spec.layout,'per-record');assert.deepEqual(f.routes.get(IN_APP_ROUTE).methods,['GET','POST']);assert.equal(f.items.data.size,0);
+    const tool=f.tools.get('dsh_quickjot_in_app_reminders');assert.equal(tool.deferLoading,true);assert.deepEqual(tool.parameters.properties.op.enum,['list','read']);assert.equal(tool.parameters.properties.ids.maxItems,100);assert.equal((await tool.execute({op:'list'})).unreadCount,0);
     const result=await f.call();assert.equal(result.headers.get('cache-control'),'no-store');assert.equal(result.value.channel,'in-app');
   }finally{await f.close();}assert.equal(f.closed,true);assert.equal(f.routes.size,0);assert.equal(f.tools.size,0);
 });
@@ -30,7 +30,7 @@ test('real Notebook create to due HTTP claim to explicit read works without WeCh
 test('tool and UI share unread state; original item completion/deletion/reschedule cancels exactly the corresponding notification',async()=>{
   const f=await fixture();try{
     const todo=await f.notebook.mutate({op:'create',kind:'todo',title:'完成后取消',dueAt:'2026-11-11T10:00'}),event=await f.notebook.mutate({op:'create',kind:'event',title:'改期后重建',dueAt:'2026-11-11T10:00'});
-    const tool=f.tools.get('dsh_calendar_in_app_reminders'),first=await tool.execute({op:'list'});assert.equal(first.unreadCount,2);await f.notebook.mutate({op:'complete',id:todo.id,revision:1});
+    const tool=f.tools.get('dsh_quickjot_in_app_reminders'),first=await tool.execute({op:'list'});assert.equal(first.unreadCount,2);await f.notebook.mutate({op:'complete',id:todo.id,revision:1});
     await f.notebook.mutate({op:'update',id:event.id,revision:1,dueAt:'2026-11-11T10:02'});assert.equal((await f.call()).value.unreadCount,0);f.advance(120000);
     const next=(await f.call({op:'claim'})).value;assert.equal(next.alerts.length,1);assert.equal(next.alerts[0].itemId,event.id);
     await tool.execute({op:'read',ids:[next.alerts[0].id]});assert.equal((await f.call()).value.unreadCount,0);assert.equal(f.items.get(event.id).done,false);
