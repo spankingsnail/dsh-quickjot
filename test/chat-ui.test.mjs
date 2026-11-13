@@ -16,6 +16,10 @@ async function fixture(){
  function render(open){cursor=0;effects=[];const tree=chat.type({...chat.props,open});return {tree,nodes:walk(tree),effects:[...effects]};}
  return {render,values,log,dialog,messages,refs};
 }
+test('empty chat explains editing existing items and transcript-only voice without creating a new audio control',async()=>{
+  const f=await fixture();f.values[0]={...f.values[0],messages:[]};const {nodes}=f.render(true),text=nodes.flatMap(node=>node.children??[]).filter(value=>typeof value==='string').join('\n');
+  assert.match(text,/改到明天上午十点/);assert.match(text,/给它加「工作」标签/);assert.match(text,/同名事项或时间不清楚时先问你/);assert.match(text,/已有转文字功能，本窗口不录音/);assert.equal(nodes.find(node=>node.type==='textarea').props.placeholder,'想新增或调整什么，直接说……');assert.equal(nodes.some(node=>['audio','video'].includes(node.type)),false);
+});
 test('latest 20 personal inputs retain their inline assistant answers in chronological order',async()=>{
  const f=await fixture(),{nodes}=f.render(false);const rows=nodes.filter(n=>n.props.className==='ssj-chat-message');
  assert.equal(rows.length,40);assert.ok(rows[0].children.includes('输入5'));assert.ok(rows[1].children.includes('答复5'));assert.ok(rows.at(-1).children.includes('真实的最终处理结果'));

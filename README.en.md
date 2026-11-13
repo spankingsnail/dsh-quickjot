@@ -71,7 +71,7 @@ The UI follows the DSH theme. Dates and due times are always read as **Asia/Shan
 
 ## Install
 
-> Currently v3.2.0, for the desktop build of DSH (0.2.x).
+> Currently v3.3.0, for the desktop build of DSH (0.2.x).
 
 ```bash
 git clone https://github.com/spankingsnail/dsh-quickjot.git ~/dsh-quickjot
@@ -114,7 +114,21 @@ If the saved quick-jot conversation is archived, the popup explains why sending 
 
 When something is vague it asks. Notes and plain todos may have no date; an event must have a concrete date and time.
 
-**In chat it works the same way:** say "remember this for me" in any conversation and the agent calls `dsh_quickjot_write`. No need to switch to the plugin page.
+**Edit existing items, not just add new ones:** in 随口记 or a DSH conversation, try:
+
+- "Move contract renewal to eleven tomorrow morning."
+- "Mark the weekly report as complete" / "Reopen the weekly report."
+- "Add Work and Important tags to the weekly report."
+- "Remove its Temporary tag; keep the other tags."
+- "Change Temporary to Work on these todos" — if the scope is unclear, the agent lists candidates and asks you to confirm.
+
+The agent first lists existing items, then updates the exact ID at its latest revision. Namesakes or unclear times require clarification; no match must not silently create a replacement. Omitted fields are preserved. Adding, removing and replacing the entire tag set are separate operations. Batches save each item independently and may partially succeed; replies should distinguish success from failure. **Moving an event does not automatically move its WeChat reminder.** Ask explicitly to move that too. Reopening a completed item does not reactivate a cancelled WeChat reminder.
+
+**Voice editing:** use the existing voice input in DSH's main conversation, review its transcript, then send. WeChat input works only when the channel has already supplied transcribed text; arbitrary raw voice messages are not guaranteed to work. This plugin adds no microphone or recorder. Transcripts and typed text use the same editing tools. Quotes, reported speech, examples and discussion do not authorise edits.
+
+**In chat it works the same way:** say "remember this for me" or "change … to …" in any conversation and the agent calls `dsh_quickjot_list` / `dsh_quickjot_write`. No need to switch to the plugin page.
+
+**When your agenda grows:** Upcoming defaults to unfinished events from today onward, including future months. Earlier unfinished events are folded separately; completed events have an explicit toggle. The navigation stays visible while scrolling, with Today, Next seven days, Whole month and a date picker. Returning to a view or finishing an edit restores its reading position within the same Shanghai day; a new day resets date-sensitive browsing to Upcoming. These are display filters, never automatic completion or deletion.
 
 **When you do want the form:** click "+ New note / todo / event" in the page. That path still exists — it is just no longer the default.
 
@@ -123,9 +137,9 @@ When something is vague it asks. Notes and plain todos may have no date; an even
 ## Data and privacy
 
 - Items live in the DSH storage domain `dsh_quickjot` (version 1, one record each); unread reminder state lives in `dsh_quickjot_in_app`. The backend is plain per-record JSON at a path DSH decides (usually under `~/.dsh/storages/`).
-- Only items, tags, reminder state and the ID of the delivery target you picked are stored. No conversation content, no address book, no WeChat token.
+- The item ledger stores items, tags, reminder state and the ID of the delivery target you picked. No conversation content, no address book, no WeChat token. Separately, browser `sessionStorage` temporarily holds view filters, search text and scroll anchors locally; these are never uploaded or written to the item ledger. Browsing still works when that storage is unavailable.
 - WeChat delivery only calls a target **you have already saved** through the connected `dshIm` service. It never creates targets, reads credentials, or messages unknown contacts.
-- Everything is local: no server, no cloud sync, no external data source.
+- The plugin adds no server, ledger cloud sync, recorder or audio storage. AI conversations still use your selected DSH model; transcription uses the existing DSH/WeChat capability and may involve those providers. Transcribed text is sent to the model according to the conversation configuration, just like typed text.
 
 ## Credits
 

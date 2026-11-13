@@ -3,6 +3,7 @@ await mkdir(new URL('./lib/',import.meta.url),{recursive:true});
 for(const name of ['index','core','service','reminder-core','reminder-host','client']){
   let source=await readFile(new URL(`./src/${name}.mjs`,import.meta.url),'utf8');
   if(name==='client'){
+    source=source.replace('/* AGENDA */',(await readFile(new URL('./src/agenda.mjs',import.meta.url),'utf8')).replace(/^export /gm,''));
     source=source.replace('/* CHAT_CONTROLLER */',(await readFile(new URL('./src/chat-controller.mjs',import.meta.url),'utf8')).replace(/^export /gm,''));
     source=source.replace('/* REMINDER_CLIENT */',await readFile(new URL('./src/reminder-client.mjs',import.meta.url),'utf8'));
   }

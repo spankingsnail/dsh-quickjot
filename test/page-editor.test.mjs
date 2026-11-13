@@ -2,18 +2,22 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
+import {Notebook} from '../src/core.mjs';
 const walk=node=>!node||typeof node!=='object'?[]:[node,...(node.children??[]).flat(Infinity).flatMap(walk)];
-async function fixture(initialTab='note'){
- let plugin,cursor=0;const values=[],refs=[],entries=[],posts=[],prompts=[];
+async function fixture(initialTab='note',options={}){
+ let plugin,cursor=0,effectCursor=0;const values=[],refs=[],entries=[],posts=[],prompts=[],effects=[],pending=[],intervals=[];
+ const store=options.store??new Map(),sessionStorage={getItem:key=>store.get(key)??null,setItem:(key,value)=>store.set(key,value)};
+ let clock='2030-01-02T00:00:00Z';class Clock extends Date{constructor(...args){super(...(args.length?args:[clock]));}static now(){return Date.parse(clock);}}
  const existing=['note','todo','event'].map((kind,i)=>({id:'old-'+kind,revision:4,kind,title:'旧'+kind,body:'旧正文',tags:['旧标签'],dueAt:'2030-01-02T01:00:00.000Z',done:false,reminder:null}));
- const data={items:existing,now:'2030-01-02 08:00:00',preference:{target:null},delivery:{targets:[]}};
+ const data={items:existing,now:'2030-01-02 08:00:00',preference:{target:null},delivery:{targets:options.targets??[]}};
  let approve=true,postHandler=async()=>({ok:true,json:async()=>({ok:true})});
- const React={createElement:(type,props,...children)=>({type,props:props??{},children}),useState:init=>{const i=cursor++;if(!(i in values))values[i]=typeof init==='function'?init():init;return [values[i],value=>{values[i]=typeof value==='function'?value(values[i]):value;}];},useRef:init=>{const i=cursor++;return refs[i]??=({current:init});},useEffect:()=>{}};
- vm.runInNewContext(await readFile(new URL('../lib/client.js',import.meta.url),'utf8'),{window:{confirm:text=>{prompts.push(text);return approve;},__ModuleLoader__:{load:entry=>{plugin=entry.factory(()=>React);}}},Intl,AbortController,fetch:async(_url,options)=>{if(options?.method==='POST'){posts.push(JSON.parse(options.body));return postHandler();}return {ok:true,json:async()=>data};}});
+ const React={createElement:(type,props,...children)=>({type,props:props??{},children}),useState:init=>{const i=cursor++;if(!(i in values))values[i]=typeof init==='function'?init():init;return [values[i],value=>{values[i]=typeof value==='function'?value(values[i]):value;}];},useRef:init=>{const i=cursor++;return refs[i]??=({current:init});},useEffect:(fn,deps)=>{if(!options.effects)return;const i=effectCursor++,previous=effects[i];if(previous&&deps?.length===previous.deps?.length&&deps.every((value,j)=>Object.is(value,previous.deps[j])))return;effects[i]={deps,cleanup:previous?.cleanup};pending.push(()=>{previous?.cleanup?.();effects[i].cleanup=fn();});}};
+ vm.runInNewContext(await readFile(new URL('../lib/client.js',import.meta.url),'utf8'),{Date:Clock,setInterval:fn=>{intervals.push(fn);return intervals.length;},clearInterval:()=>{},window:{sessionStorage,confirm:text=>{prompts.push(text);return approve;},__ModuleLoader__:{load:entry=>{plugin=entry.factory(()=>React);}}},Intl,AbortController,fetch:async(_url,options)=>{if(options?.method==='POST'){posts.push(JSON.parse(options.body));return postHandler();}return {ok:true,json:async()=>data};}});
  const ctx={effect:fn=>fn(),locale:{register:()=>()=>{},bind:()=>s=>s},layout:{},slots:{inject:(_key,fn)=>fn(),register:(options,component)=>entries.push({options,component})}};
  plugin.apply(ctx);const page=entries.find(e=>e.options.name==='main').component();
- function render(){cursor=0;const tree=page.type(page.props);return {tree,nodes:walk(tree)};}
- render();values[0]=data;values[7]='2030-01';
+ function render(){cursor=0;effectCursor=0;const tree=page.type(page.props);const nodes=walk(tree);if(options.root)nodes.find(n=>n.props.className==='ssj').props.ref.current=options.root;return {tree,nodes};}
+ function commit(){for(let i=0;i<10;i++){render();if(!pending.length)break;for(const fn of pending.splice(0))fn();}return render();}
+ render();values[0]=data;
  function button(text){return render().nodes.find(n=>n.type==='button'&&n.children.includes(text));}
  function tab(kind){return button(({note:'便签',todo:'待办',event:'日程'})[kind]+' 1');}
  function form(){return render().nodes.find(n=>n.type==='form'&&n.props.className==='ssj-editor');}
@@ -21,11 +25,11 @@ async function fixture(initialTab='note'){
  function fill(){field('标题').props.onChange({target:{value:'未保存标题'}});field('内容').props.onChange({target:{value:'未保存内容'}});const picker=walk(form()).find(n=>typeof n.type==='function'&&n.type.name==='TagPicker');picker.props.onChange(['历史草稿标签']);}
  function assertBlank(kind){const f=form();assert.ok(f);assert.equal(f.props.autoComplete,'off');assert.equal(field('标题').props.value,'');assert.equal(field('内容').props.value,'');assert.equal(field('类型').props.value,kind);assert.ok(walk(f).filter(n=>n.type==='input'&&n.props.type==='datetime-local').every(n=>n.props.value===''));assert.equal(walk(f).find(n=>typeof n.type==='function'&&n.type.name==='TagPicker').props.value.length,0);}
  if(initialTab)tab(initialTab).props.onClick();
-  return {render,button,tab,form,field,fill,assertBlank,existing,posts,prompts,setItems:items=>{data.items=items;},setApprove:value=>{approve=value;},setPostHandler:fn=>{postHandler=fn;}};
+  return {render,commit,button,tab,form,field,fill,assertBlank,existing,posts,prompts,store,unmount:()=>effects.forEach(e=>e.cleanup?.()),remount:()=>{effects.forEach(e=>e.cleanup?.());values.length=0;refs.length=0;effects.length=0;pending.length=0;render();},poll:async()=>{await intervals.at(-1)?.();},setClock:now=>{clock=now;},setNow:now=>{data.now=now;},setItems:items=>{data.items=items;},setApprove:value=>{approve=value;},setPostHandler:fn=>{postHandler=fn;}};
 }
 test('first page defaults to event, orders event/todo/note and creates an event without touching saved records',async()=>{
  const f=await fixture(null);const tabs=f.render().nodes.filter(n=>n.type==='button'&&'aria-pressed' in n.props);
- assert.deepEqual(tabs.slice(0,3).map(n=>n.children[0]),['日程 1','待办 1','便签 1']);assert.equal(tabs[0].props['aria-pressed'],true);assert.ok(tabs.slice(1).every(n=>!n.props['aria-pressed']));
+ assert.deepEqual(tabs.slice(0,3).map(n=>n.children[0]),['日程 1','待办 1','便签 1']);assert.equal(tabs[0].props['aria-pressed'],true);assert.ok(tabs.slice(1,3).every(n=>!n.props['aria-pressed']));
  f.button('+ 新建日程').props.onClick();f.assertBlank('event');assert.equal(f.posts.length,0);
 });
 test('expanded month calendar removes both width caps, enlarges desktop dates and keeps a narrow-screen fallback',async()=>{
@@ -105,4 +109,73 @@ test('work-summary toggles preserve existing/custom tags and still enforce the t
 });
 test('pending save prevents tab/new races and cannot post a second editor submission',async()=>{
  const f=await fixture();let release;f.setPostHandler(()=>new Promise(resolve=>{release=()=>resolve({ok:true,json:async()=>({ok:true})});}));f.button('+ 新建便签').props.onClick();f.field('标题').props.onChange({target:{value:'保存中'}});const pending=f.form().props.onSubmit({preventDefault(){}});assert.equal(f.posts.length,1);assert.equal(f.tab('todo').props.disabled,true);assert.equal(f.button('+ 新建便签').props.disabled,true);f.tab('todo').props.onClick();f.button('+ 新建便签').props.onClick();await f.form().props.onSubmit({preventDefault(){}});assert.equal(f.field('标题').props.value,'保存中');assert.equal(f.posts.length,1);release();await pending;assert.equal(f.form(),undefined);
+});
+for(const rename of [false,true])test(`actual editor payload cancels an existing reminder with a selected target${rename?' while renaming the item':''}`,async t=>{
+  const target={botId:'editor-test-bot',targetId:'editor-test-target',name:'Synthetic recipient'};
+  const f=await fixture('event',{targets:[target]}),original=f.existing.find(item=>item.kind==='event');
+  original.createdAt=original.updatedAt='2030-01-01T00:00:00.000Z';
+  original.reminder={at:'2030-01-03T02:00:00.000Z',state:'pending',target:{botId:target.botId,targetId:target.targetId},missed:false,attemptedAt:null,sentAt:null,error:null};
+  const records=new Map([[original.id,structuredClone(original)]]),items={get:id=>structuredClone(records.get(id)),entries:()=>records.entries(),put:async(id,value)=>records.set(id,structuredClone(value))};
+  const notebook=new Notebook({items,preferences:{get:()=>undefined},getIm:()=>{throw Error('cancellation must not discover or send to IM');},now:()=>Date.parse('2030-01-02T00:00:00Z')});t.after(()=>notebook.close());
+  f.setPostHandler(async()=>{try{const value=await notebook.mutate(f.posts.at(-1));return {ok:true,json:async()=>({ok:true,value})};}catch(error){return {ok:false,json:async()=>({error:error.message})};}});
+  f.button('编辑').props.onClick();assert.equal(f.field('已保存的微信目标').props.value,JSON.stringify([target.botId,target.targetId]));
+  f.field('微信提醒时间 · 上海（可留空）').props.onChange({target:{value:''}});if(rename)f.field('标题').props.onChange({target:{value:'取消提醒并改名'}});
+  await f.form().props.onSubmit({preventDefault(){}});assert.equal(f.posts.length,1);assert.equal(f.posts[0].remindAt,null);assert.equal('target' in f.posts[0],false);assert.equal(f.form(),undefined,'actual core accepted the editor action');
+  const saved=records.get(original.id);assert.equal(saved.reminder,null);assert.equal(saved.dueAt,original.dueAt);assert.equal(saved.title,rename?'取消提醒并改名':original.title);assert.equal(saved.body,original.body);assert.deepEqual(saved.tags,original.tags);assert.equal(saved.revision,original.revision+1);
+});
+// These are effect/scroll-adapter unit tests, not rendered-browser verification.
+function scrollRoot(top=0){
+ const root={scrollTop:top,offsetTop:0,getBoundingClientRect:()=>({top:0}),querySelector:selector=>selector==='.ssj-nav'?{offsetTop:200,getBoundingClientRect:()=>({bottom:120})}:null};
+ root.querySelectorAll=()=>[{getAttribute:()=> 'old-event',getBoundingClientRect:()=>({top:1800-root.scrollTop,bottom:1860-root.scrollTop})}];return root;
+}
+function agendaCheck(f){return f.render().nodes.find(n=>n.type==='input'&&n.props.type==='checkbox'&&'checked' in n.props&&!n.props['aria-label']);}
+function dateInput(f){return f.render().nodes.find(n=>n.type==='input'&&n.props.type==='date');}
+test('agenda defaults to upcoming across months; old unfinished and completed work have explicit non-destructive controls',async()=>{
+ const f=await fixture(null),event=f.existing.find(x=>x.kind==='event');f.setItems([...f.existing,{...event,id:'old',dueAt:'2030-01-01T00:00:00Z'},{...event,id:'done',done:true},{...event,id:'future',dueAt:'2030-02-01T00:00:00Z'}]);
+ let nodes=f.render().nodes;assert.equal(f.button('接下来').props['aria-pressed'],true);assert.ok(nodes.some(n=>n.props.className==='ssj-overdue'&&n.props.open===false));
+ assert.equal(nodes.filter(n=>n.type==='article'&&n.props['data-kind']==='event').length,3,'two current/future plus one collapsed old item, no completed item');
+ agendaCheck(f).props.onChange({target:{checked:true}});assert.equal(f.render().nodes.filter(n=>n.type==='article'&&n.props['data-kind']==='event').length,4);assert.equal(f.posts.length,0);
+ f.button('今天').props.onClick();assert.equal(dateInput(f).props.value,'2030-01-02');assert.equal(f.render().nodes.filter(n=>n.type==='article').length,2);
+ f.button('近七天').props.onClick();assert.equal(f.button('近七天').props['aria-pressed'],true);assert.equal(f.posts.length,0);
+});
+test('date controls cross months, clear safely and calendar counts use the same search/completion filter',async()=>{
+ const f=await fixture(null),event=f.existing.find(x=>x.kind==='event');f.setItems([...f.existing,{...event,id:'done',done:true},{...event,id:'future',dueAt:'2030-02-01T00:00:00Z'}]);
+ assert.ok(f.render().nodes.some(n=>n.props['aria-label']==='2030-01-02 1项日程'));
+ dateInput(f).props.onChange({target:{value:'2030-02-01'}});assert.equal(f.render().nodes.filter(n=>n.type==='article').length,1);assert.equal(f.render().nodes.find(n=>n.props['aria-label']==='日历月份').props.value,'2030-02');
+ dateInput(f).props.onChange({target:{value:''}});assert.equal(f.button('接下来').props['aria-pressed'],true);
+ f.render().nodes.find(n=>n.props['aria-label']==='日历月份').props.onChange({target:{value:''}});assert.equal(f.render().nodes.find(n=>n.props['aria-label']==='日历月份').props.value,'2030-01');
+ f.render().nodes.find(n=>n.props['aria-label']==='查找事项').props.onChange({target:{value:'不存在'}});assert.ok(f.render().nodes.some(n=>n.props['aria-label']==='2030-01-02 0项日程'));assert.ok(f.button('清除搜索'));f.button('清除搜索').props.onClick();assert.equal(f.posts.length,0);
+});
+test('page effects restore a same-day view and anchor after unmount instead of restarting at the top',async()=>{
+ const root=scrollRoot(),f=await fixture(null,{effects:true,root});f.commit();f.button('今天').props.onClick();f.commit();root.scrollTop=940;f.render().tree.props.onScroll();f.unmount();
+ const root2=scrollRoot(),again=await fixture(null,{effects:true,root:root2,store:f.store});again.commit();assert.equal(dateInput(again).props.value,'2030-01-02');assert.equal(root2.scrollTop,940);assert.equal(again.posts.length,0);again.unmount();
+});
+test('polling refreshes never restore an old position over manual scrolling',async()=>{
+ const root=scrollRoot(),f=await fixture(null,{effects:true,root});f.commit();root.scrollTop=700;f.render().tree.props.onScroll();await f.poll();f.commit();assert.equal(root.scrollTop,700);root.scrollTop=1030;await f.poll();f.commit();assert.equal(root.scrollTop,1030);f.unmount();
+});
+test('cancel and save restore the pre-editor anchor without replaying mutations',async()=>{
+ const root=scrollRoot(),f=await fixture(null,{effects:true,root});f.commit();root.scrollTop=800;f.button('编辑').props.onClick();f.commit();root.scrollTop=50;f.button('取消').props.onClick();f.commit();assert.equal(root.scrollTop,800);assert.equal(f.posts.length,0);
+ root.scrollTop=1100;f.button('编辑').props.onClick();f.commit();root.scrollTop=0;await f.form().props.onSubmit({preventDefault(){}});f.commit();assert.equal(root.scrollTop,1100);assert.equal(f.posts.length,1);f.unmount();
+});
+test('Shanghai midnight resets date-sensitive browsing once, but does not discard an editor draft',async()=>{
+ const root=scrollRoot(),f=await fixture(null,{effects:true,root});f.commit();f.button('今天').props.onClick();f.commit();f.button('+ 新建日程').props.onClick();f.field('标题').props.onChange({target:{value:'跨日未保存'}});f.commit();f.setNow('2030-01-03 00:01:00');f.commit();assert.equal(f.button('接下来').props['aria-pressed'],true);assert.equal(f.field('标题').props.value,'跨日未保存');assert.equal(f.posts.length,0);f.unmount();
+});
+test('changing months in a day filter does not lose the upcoming anchor',async()=>{
+ const root=scrollRoot(),f=await fixture(null,{effects:true,root});f.commit();root.scrollTop=930;f.render().tree.props.onScroll();dateInput(f).props.onChange({target:{value:'2030-02-02'}});f.commit();assert.equal(root.scrollTop,200);f.button('接下来').props.onClick();f.commit();assert.equal(root.scrollTop,930);f.unmount();
+});
+test('past-work expansion persists even without scrolling before a host-side unmount',async()=>{
+ const root=scrollRoot(),f=await fixture(null,{effects:true,root}),event=f.existing.find(x=>x.kind==='event');f.setItems([...f.existing,{...event,id:'old',dueAt:'2030-01-01T00:00:00Z'}]);f.commit();f.render().nodes.find(n=>n.props.className==='ssj-overdue').props.onToggle({currentTarget:{open:true}});f.commit();f.unmount();
+ const again=await fixture(null,{effects:true,root:scrollRoot(),store:f.store});again.setItems([...again.existing,{...event,id:'old',dueAt:'2030-01-01T00:00:00Z'}]);again.commit();assert.equal(again.render().nodes.find(n=>n.props.className==='ssj-overdue').props.open,true);again.unmount();
+});
+test('default upcoming midnight resets actual scroll even without another filter change',async()=>{
+ const root=scrollRoot(),f=await fixture(null,{effects:true,root});f.commit();root.scrollTop=1200;f.render().tree.props.onScroll();f.setClock('2030-01-03T00:01:00+08:00');f.setNow('2030-01-03 00:01:00');f.commit();assert.equal(root.scrollTop,200);assert.equal(f.button('接下来').props['aria-pressed'],true);f.unmount();
+});
+test('same-bundle remount after Shanghai midnight does not restore yesterday\'s anchor',async()=>{
+ const root=scrollRoot(),f=await fixture(null,{effects:true,root});f.commit();root.scrollTop=1200;f.render().tree.props.onScroll();f.setClock('2030-01-03T00:01:00+08:00');f.setNow('2030-01-03 00:01:00');f.remount();f.commit();await f.poll();f.commit();assert.equal(root.scrollTop,200);assert.equal(f.button('接下来').props['aria-pressed'],true);f.unmount();
+});
+test('an editor crossing midnight retains its draft but cannot restore yesterday on cancel',async()=>{
+ const root=scrollRoot(),f=await fixture(null,{effects:true,root});f.commit();root.scrollTop=1200;f.button('编辑').props.onClick();f.commit();root.scrollTop=50;f.field('标题').props.onChange({target:{value:'跨午夜草稿'}});f.setNow('2030-01-03 00:01:00');f.commit();assert.equal(root.scrollTop,50);assert.equal(f.field('标题').props.value,'跨午夜草稿');f.button('取消').props.onClick();f.commit();assert.notEqual(root.scrollTop,1200);assert.equal(f.posts.length,0);f.unmount();
+});
+test('sticky navigation stays within the page and uses theme tokens with wrapping narrow controls',async()=>{
+ const f=await fixture(null),css=f.render().nodes.find(n=>n.type==='style').children.join('');assert.match(css,/\.ssj-nav\{position:sticky;top:var\(--dsh-frame-top-clearance,0px\)/);assert.match(css,/\.ssj-agenda-nav\{[^}]*flex-wrap:wrap/);assert.match(css,/\.ssj-nav-tools\{[^}]*flex-wrap:wrap/);assert.equal(f.render().nodes.find(n=>n.type==='nav').props['aria-label'],'事项导航');assert.ok(f.render().tree.props.ref);assert.equal(f.posts.length,0);
 });
